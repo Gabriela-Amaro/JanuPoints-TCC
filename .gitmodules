@@ -1,9 +1,0 @@
-[submodule "app/backend"]
-	path = app/backend
-	url = git@github.com:Gabriela-Amaro/Janu-Prime-Backend.git
-[submodule "app/frontend-web"]
-	path = app/frontend-web
-	url = git@github.com:Gabriela-Amaro/Janu-Prime-Frontend-web.git
-[submodule "app/frontend-mobile"]
-	path = app/frontend-mobile
-	url = git@github.com:Gabriela-Amaro/Janu-Prime-Frontend-mobile.git

@@ -119,7 +119,7 @@ export default function ProdutoDetalheScreen() {
           {produto.descricao ? (
             <Text style={styles.productDesc}>{produto.descricao}</Text>
           ) : null}
-          <Text style={styles.productPoints}>JP {produto.pontos}</Text>
+          <Text style={styles.productPoints}>{produto.pontos} pontos</Text>
         </View>
       </ScrollView>
 
@@ -127,7 +127,7 @@ export default function ProdutoDetalheScreen() {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={styles.footerLeft}>
           <Text style={styles.footerTotalLabel}>Total do Pedido</Text>
-          <Text style={styles.footerTotalValue}>JP {produto.pontos}</Text>
+          <Text style={styles.footerTotalValue}>{produto.pontos} pontos</Text>
         </View>
         <TouchableOpacity
           style={styles.footerButton}

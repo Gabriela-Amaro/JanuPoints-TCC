@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,7 +13,7 @@ import { useRouter } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
 import { ProfileHeader } from "../../components/ProfileHeader";
 import { useToast } from "../../contexts/ToastContext";
-import { api, ApiError, formatErrorMessage } from "../../services/api";
+import { api, formatErrorMessage } from "../../services/api";
 import { colors } from "../../constants/Colors";
 import { styles } from "./styles";
 

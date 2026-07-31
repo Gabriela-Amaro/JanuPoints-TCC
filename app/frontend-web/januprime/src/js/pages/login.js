@@ -9,9 +9,9 @@ export function getLoginContent() {
       <div class="auth-card auth-fade-in">
         <div class="card-body">
               <div class="text-center mb-4">
-                <img src="/assets/images/logo.svg" alt="Janu Prime" width="60" height="60" class="mb-3">
+                <img src="/assets/images/logo.svg" alt="JanuPoints" width="60" height="60" class="mb-3">
                 <h2 class="text-gradient mb-2">Bem-vindo de volta!</h2>
-                <p class="text-muted">Faça login para acessar sua conta</p>
+                <p class="text-muted">Acesse o painel do seu estabelecimento parceiro</p>
               </div>
               
               <form id="loginForm" onsubmit="handleLogin(event)">
@@ -148,35 +148,7 @@ export async function handleLogin(event) {
   }
 }
 
-// Função para autenticar usuário (simulada)
-function authenticateUser(email, password) {
-  // Dados de usuários de exemplo (em produção, isso viria de uma API)
-  const users = [
-    { email: 'admin@januprime.com', password: 'admin123', role: 'admin' },
-    { email: 'gerente@januprime.com', password: 'gerente123', role: 'gerente' },
-    { email: 'funcionario@januprime.com', password: 'func123', role: 'funcionario' }
-  ];
-  
-  const user = users.find(u => u.email === email && u.password === password);
-  
-  if (user) {
-    // Salvar dados do usuário
-    localStorage.setItem('userData', JSON.stringify({
-      email: user.email,
-      role: user.role,
-      loginTime: new Date().toISOString()
-    }));
-    return true;
-  }
-  
-  return false;
-}
 
-// Função para gerar token de autenticação (simulada)
-function generateAuthToken(email) {
-  // Em produção, isso seria um JWT real
-  return btoa(email + ':' + Date.now());
-}
 
 // Exportar funções para uso global
 window.togglePasswordVisibility = togglePasswordVisibility;

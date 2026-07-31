@@ -109,72 +109,12 @@ export class AuthService {
     }
   }
 
-  /**
-   * Decodificar JWT (payload)
-   */
-  decodeToken(token) {
-    try {
-      const payload = token.split(".")[1];
-      const decoded = JSON.parse(atob(payload));
-      return {
-        user_id: decoded.user_id,
-        exp: decoded.exp,
-      };
-    } catch (error) {
-      console.error("Erro ao decodificar token:", error);
-      return null;
-    }
-  }
-
-  /**
-   * Verificar se o usuário tem permissão para acessar uma página
-   * Páginas restritas a super_user (gerentes): funcionarios, auditoria
-   */
-  hasPermission(page) {
-    if (!this.isAuthenticated || !this.userData) {
-      return false;
-    }
-
-    // Verificar se é administrador
-    if (this.userData.tipo_usuario !== "ADMINISTRADOR") {
-      return false;
-    }
-
-    // Páginas restritas a super_user (gerentes)
-    const superUserOnly = ["funcionarios", "auditoria"];
-
-    if (superUserOnly.includes(page) && !this.userData.super_user) {
-      return false;
-    }
-
-    return true;
-  }
-
-  // Obter token de autenticação
-  getToken() {
-    return localStorage.getItem("authToken");
-  }
-
-  // Verificar se o token é válido
-  isTokenValid() {
-    const token = this.getToken();
-    if (!token) return false;
-
-    try {
-      const tokenData = JSON.parse(atob(token.split(".")[1]));
-      const now = Date.now() / 1000;
-      return tokenData.exp > now;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  // Atualizar dados do usuário
-  updateUserData(newData) {
-    if (this.userData) {
-      this.userData = { ...this.userData, ...newData };
-      localStorage.setItem("userData", JSON.stringify(this.userData));
-    }
+  hasPermission() {
+    return Boolean(
+      this.isAuthenticated &&
+      this.userData &&
+      this.userData.tipo_usuario === "ADMINISTRADOR"
+    );
   }
 }
 

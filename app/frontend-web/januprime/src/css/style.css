@@ -8,14 +8,14 @@
   /* ========================================
      CORES PRINCIPAIS (Brand) - Azul Profissional
      ======================================== */
-  --primary-color: #3b82f6;
-  --primary-dark: #2563eb;
-  --primary-light: #93c5fd;
-  --primary-accent: #3b82f6;
-  --primary-accent-dark: #2563eb;
-  --primary-accent-darker: #1d4ed8;
-  --secondary-color: #64748b;
-  --secondary-dark: #475569;
+  --primary-color: #6f3d2e;
+  --primary-dark: #522b20;
+  --primary-light: #c9a58e;
+  --primary-accent: #6f3d2e;
+  --primary-accent-dark: #522b20;
+  --primary-accent-darker: #3d2018;
+  --secondary-color: #806b61;
+  --secondary-dark: #5b4941;
 
   /* ========================================
      CORES DE STATUS
@@ -39,8 +39,8 @@
   /* ========================================
      CORES DE FUNDO (Light Theme)
      ======================================== */
-  --bg-body-start: #f8fafc;
-  --bg-body-end: #f1f5f9;
+  --bg-body-start: #fbf8f6;
+  --bg-body-end: #f4eeea;
   --bg-card: #ffffff;
   --bg-card-header: #f8fafc;
   --bg-input: #ffffff;
@@ -52,7 +52,7 @@
   /* ========================================
      CORES DE BORDA
      ======================================== */
-  --border-color: #cbd5e1;
+  --border-color: #e5d8cf;
   --border-light: rgba(0, 0, 0, 0.1);
   --border-focus: #8b5cf6;
 
@@ -65,19 +65,19 @@
      ======================================== */
   --text-white: #ffffff;
   --text-light: #f8fafc;
-  --text-muted: #475569;
-  --text-secondary: #334155;
-  --text-dark: #0f172a;
-  --text-primary: #020617;
-  --text-placeholder: #64748b;
+  --text-muted: #74645d;
+  --text-secondary: #4d3e37;
+  --text-dark: #241914;
+  --text-primary: #1c120d;
+  --text-placeholder: #8c7b72;
 
   /* ========================================
      GRADIENTES
      ======================================== */
   --gradient-body: var(--bg-body-start);
-  --gradient-primary: #3b82f6;
-  --gradient-primary-btn: #3b82f6;
-  --gradient-primary-btn-hover: #2563eb;
+  --gradient-primary: #6f3d2e;
+  --gradient-primary-btn: #6f3d2e;
+  --gradient-primary-btn-hover: #522b20;
   --gradient-secondary: #64748b;
   --gradient-success: #10b981;
   --gradient-danger: #ef4444;
@@ -1149,6 +1149,7 @@ h6 {
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 1.25rem;
+  color: #ffffff !important;
 }
 
 .modal-body {
@@ -2525,4 +2526,308 @@ html {
 
 .auth-footer .footer-links a.text-muted::before {
   display: none;
+}
+
+/* Identidade visual da versão acadêmica: foco, clareza e poucos caminhos. */
+body {
+  background: var(--bg-body-start);
+  color: var(--text-dark);
+}
+
+.app-main {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 2rem 2.5rem 4rem;
+}
+
+#mainNavbar {
+  background: var(--primary-color) !important;
+  border-bottom: 0;
+  box-shadow: 0 3px 16px rgba(82, 43, 32, 0.14);
+}
+
+#mainNavbar .navbar-brand {
+  letter-spacing: 0.01em;
+}
+
+#mainNavbar .nav-link {
+  border-radius: 0.55rem;
+  margin: 0.15rem 0;
+}
+
+#mainNavbar .nav-link:hover,
+#mainNavbar .nav-link.active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.offcanvas {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.nav-section-label {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0.25rem 0 0.4rem;
+}
+
+.panel-purpose {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.7rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  padding: 0.75rem;
+}
+
+.purpose-label {
+  color: #fff;
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.card {
+  border: 1px solid var(--border-color);
+  border-radius: 0.8rem;
+  box-shadow: 0 2px 8px rgba(70, 45, 35, 0.04);
+}
+
+.card-header {
+  background: #fffaf7;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--primary-color);
+  --bs-btn-border-color: var(--primary-color);
+  --bs-btn-hover-bg: var(--primary-dark);
+  --bs-btn-hover-border-color: var(--primary-dark);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 0.2rem rgba(111, 61, 46, 0.14);
+}
+
+.text-primary,
+.text-gradient {
+  color: var(--primary-color) !important;
+  -webkit-text-fill-color: var(--primary-color);
+}
+
+.page-heading h1 {
+  font-weight: 700;
+}
+
+.eyebrow {
+  color: var(--text-muted);
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.summary-number {
+  color: var(--primary-color);
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.academic-note {
+  background: #f4e9e1;
+  border: 1px solid #e5d8cf;
+  color: var(--text-secondary);
+}
+
+.empty-state {
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.empty-state i {
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.request-item {
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 92px;
+  padding: 0.9rem 0;
+}
+
+.request-item:last-child {
+  border-bottom: 0;
+}
+
+.request-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.request-info strong {
+  color: var(--text-primary);
+}
+
+.request-info small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.request-date {
+  color: var(--text-placeholder);
+  font-size: 0.75rem;
+}
+
+.request-actions {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.request-points {
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.request-buttons {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.request-buttons .btn {
+  white-space: nowrap;
+}
+
+#transacoes-table thead th {
+  background: #fffaf7;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 992px) {
+  #mainNavbar .offcanvas {
+    background: var(--primary-color) !important;
+    flex-grow: 1;
+    height: auto;
+    position: static;
+    transform: none;
+    visibility: visible;
+    width: auto;
+  }
+
+  #mainNavbar .offcanvas-header,
+  #mainNavbar .nav-section-label,
+  #mainNavbar .panel-purpose {
+    display: none;
+  }
+
+  #mainNavbar .offcanvas-body {
+    align-items: center;
+    flex-direction: row !important;
+    padding: 0;
+  }
+
+  #mainNavbar .offcanvas-body > .navbar-nav {
+    flex-direction: row;
+    gap: 0.35rem;
+    margin-top: 0 !important;
+  }
+
+  #mainNavbar .offcanvas-body > .navbar-nav:first-of-type {
+    margin-left: auto;
+  }
+
+  #mainNavbar .offcanvas-body > .navbar-nav:last-of-type {
+    margin-left: 1rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .app-main {
+    padding: 1.25rem 1rem 3rem;
+  }
+}
+
+/* Cartão de pré-visualização do estabelecimento. */
+.establishment-preview-card {
+  overflow: hidden;
+}
+
+.establishment-preview-card .card-body {
+  background: linear-gradient(180deg, #fffaf7 0%, #ffffff 100%);
+}
+
+.establishment-preview-placeholder,
+.establishment-preview-logo {
+  align-items: center;
+  background: #f1e4dc;
+  border-radius: 50%;
+  display: flex;
+  height: 132px;
+  justify-content: center;
+  margin: 0 auto;
+  object-fit: cover;
+  width: 132px;
+}
+
+.establishment-preview-placeholder {
+  color: var(--primary-color);
+  font-size: 3rem;
+}
+
+.establishment-preview-name {
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.45rem;
+  text-align: center;
+}
+
+.establishment-preview-description {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin: 0 auto 1.25rem;
+  max-width: 32rem;
+  text-align: center;
+}
+
+.establishment-preview-detail {
+  align-items: flex-start;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  display: flex;
+  font-size: 0.82rem;
+  gap: 0.55rem;
+  padding: 0.75rem 0 0;
+  margin-top: 0.75rem;
+}
+
+.establishment-preview-detail i {
+  color: var(--primary-color);
+  flex: 0 0 auto;
 }

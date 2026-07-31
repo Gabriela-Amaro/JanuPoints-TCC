@@ -8,8 +8,7 @@ class ProdutoSerializer(serializers.ModelSerializer):
         source="estabelecimento.nome", read_only=True
     )
     estabelecimento_logo = serializers.ImageField(source='estabelecimento.logotipo', read_only=True)
-    estabelecimento_media_avaliacoes = serializers.FloatField(read_only=True)
-    estabelecimento_total_avaliacoes = serializers.IntegerField(read_only=True)
+
 
     class Meta:
         model = Produto

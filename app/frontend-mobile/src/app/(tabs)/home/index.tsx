@@ -1,30 +1,26 @@
 import React, { useCallback } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Text,
-  View,
-} from "react-native";
-import { CarrosselImagens } from "../../../components/CarrosselImagens";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { EstabelecimentoCard } from "../../../components/EstabelecimentoCard";
 import { PointsBadge } from "../../../components/PointsBadge";
 import { ScreenContainer } from "../../../components/ScreenContainer/tabs/ScreenContainer";
 import { RefreshableScrollView } from "../../../components/RefreshableScrollView";
 import { useAuth } from "../../../contexts/AuthContext";
-import { useAnuncios } from "../../../hooks/useAnuncios";
 import { useEstabelecimentos } from "../../../hooks/useEstabelecimentos";
 import { colors } from "../../../constants/Colors";
 import { styles } from "./styles";
 
+/** Tela inicial do recorte acadêmico: saldo e estabelecimentos parceiros. */
 export default function Home() {
   const { user } = useAuth();
-  const { imageUrls, loading: loadingAnuncios, refetch: refetchAnuncios } = useAnuncios();
-  const { data: estabelecimentos, loading: loadingEstabelecimentos, refetch: refetchEstabelecimentos } =
-    useEstabelecimentos();
+  const {
+    data: estabelecimentos,
+    loading,
+    refetch,
+  } = useEstabelecimentos();
 
   const onRefresh = useCallback(async () => {
-    await Promise.all([refetchAnuncios(), refetchEstabelecimentos()]);
-  }, [refetchAnuncios, refetchEstabelecimentos]);
+    await refetch();
+  }, [refetch]);
 
   const firstName = user?.nome?.split(" ")[0] ?? "Usuário";
 
@@ -32,7 +28,10 @@ export default function Home() {
     <ScreenContainer
       headerContent={
         <View style={styles.headerContent}>
-          <Text style={styles.greeting}>Olá, {firstName}!</Text>
+          <View>
+            <Text style={styles.eyebrow}>JanuPoints</Text>
+            <Text style={styles.greeting}>Olá, {firstName}!</Text>
+          </View>
           <PointsBadge points={user?.pontos ?? 0} />
         </View>
       }
@@ -42,30 +41,25 @@ export default function Home() {
         showsVerticalScrollIndicator={false}
         onRefresh={onRefresh}
       >
-        {/* Seção de Ofertas (só aparece quando há anúncios) */}
-        {loadingAnuncios ? (
-          <ActivityIndicator
-            size="large"
-            color={colors.brown[800]}
-            style={{ marginVertical: 40 }}
-          />
-        ) : imageUrls.length > 0 ? (
-          <>
-            <Text style={[styles.sectionTitle, { marginTop: 8 }]}>Ofertas</Text>
-            <CarrosselImagens data={imageUrls} />
-          </>
-        ) : null}
+        <View style={styles.introCard}>
+          <Text style={styles.introTitle}>Seu consumo vira benefício</Text>
+          <Text style={styles.introText}>
+            Escolha um estabelecimento, envie sua nota fiscal e acompanhe a
+            aprovação dos pontos pelo painel parceiro.
+          </Text>
+        </View>
 
-        {/* Seção de Lojas */}
-        <Text style={styles.sectionTitle}>Lojas</Text>
-        {loadingEstabelecimentos ? (
+        <Text style={styles.sectionTitle}>Estabelecimentos parceiros</Text>
+        {loading ? (
           <ActivityIndicator
             size="large"
             color={colors.brown[800]}
             style={{ marginVertical: 40 }}
           />
         ) : estabelecimentos.length === 0 ? (
-          <Text style={styles.emptyText}>Nenhum estabelecimento encontrado.</Text>
+          <Text style={styles.emptyText}>
+            Nenhum estabelecimento disponível no momento.
+          </Text>
         ) : (
           <FlatList
             data={estabelecimentos}

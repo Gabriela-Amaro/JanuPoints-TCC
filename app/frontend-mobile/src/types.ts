@@ -12,16 +12,6 @@ export interface Estabelecimento {
   logotipo: string | null;
   cnpj: string;
   horario_funcionamento: Record<string, string>;
-  media_avaliacoes: number | null;
-  total_avaliacoes: number;
-}
-
-/** Anúncio/oferta de um estabelecimento */
-export interface Anuncio {
-  id: number;
-  estabelecimento: number;
-  imagem: string | null;
-  data_expiracao: string;
 }
 
 /** Produto de um estabelecimento */
@@ -30,8 +20,6 @@ export interface Produto {
   estabelecimento: number;
   estabelecimento_nome: string;
   estabelecimento_logo: string | null;
-  estabelecimento_media_avaliacoes: number | null;
-  estabelecimento_total_avaliacoes: number;
   nome: string;
   descricao: string;
   imagem: string | null;
@@ -78,8 +66,6 @@ export interface TicketCredito {
   estabelecimento: number;
   nome_estabelecimento: string;
   logo_estabelecimento: string | null;
-  media_avaliacoes: number | null;
-  total_avaliacoes: number;
   codigo: string;
   status: TicketCreditoStatus;
   preco: string;
@@ -90,7 +76,6 @@ export interface TicketCredito {
   imagem: string | null;
   created_at: string;
   updated_at: string;
-  avaliacao: { id: number; nota: number; comentario: string | null } | null;
 }
 
 /** Ticket de débito (Resgate de Pontos) */
@@ -105,30 +90,15 @@ export interface TicketDebito {
   nome_estabelecimento: string | null;
   logo_estabelecimento: string | null;
   estabelecimento: number;
-  media_avaliacoes: number | null;
-  total_avaliacoes: number;
   codigo: string;
   status: TicketDebitoStatus;
   pontos: number;
   observacao: string | null;
   created_at: string;
   updated_at: string;
-  avaliacao: { id: number; nota: number; comentario: string | null } | null;
 }
 
 /** Tipo unificado para exibir transações na lista */
-export type Transacao = (
+export type Transacao =
   | (TicketCredito & { tipo: "credito" })
-  | (TicketDebito & { tipo: "debito" })
-);
-
-/** Avaliação do Estabelecimento */
-export interface AvaliacaoEstabelecimento {
-  id: number;
-  usuario: number;
-  nome_autor: string;
-  nota: number;
-  comentario: string | null;
-  estabelecimento: number;
-  created_at: string;
-}
+  | (TicketDebito & { tipo: "debito" });

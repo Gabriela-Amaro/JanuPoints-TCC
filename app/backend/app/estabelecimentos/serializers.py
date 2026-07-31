@@ -3,8 +3,7 @@ from .models import Estabelecimento
 
 
 class EstabelecimentoSerializer(serializers.ModelSerializer):
-    media_avaliacoes = serializers.FloatField(read_only=True)
-    total_avaliacoes = serializers.IntegerField(read_only=True)
+
 
     class Meta:
         model = Estabelecimento

@@ -118,7 +118,7 @@ export const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   footerButton: {
-    backgroundColor: colors.orange,
+    backgroundColor: colors.brown[800],
     paddingHorizontal: 28,
     paddingVertical: 12,
     borderRadius: 12,

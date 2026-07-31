@@ -4,18 +4,17 @@ import { colors } from "../../../constants/Colors";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.brown[100],
+    backgroundColor: colors.backgroundPrimary,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-    height: 130,
+    paddingHorizontal: 20,
+    paddingBottom: 18,
+    minHeight: 116,
     justifyContent: "flex-end",
+    backgroundColor: colors.brown[100],
   },
   content: {
     flex: 1,
     backgroundColor: colors.backgroundPrimary,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
   },
 });

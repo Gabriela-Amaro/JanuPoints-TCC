@@ -47,26 +47,7 @@ export const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: 6,
   },
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: FontSize.small,
-    fontFamily: FontFamily.medium,
-    color: colors.textPrimary,
-  },
-  ratingStars: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  ratingCount: {
-    fontSize: FontSize.small,
-    fontFamily: FontFamily.regular,
-    color: colors.gray[500],
-    marginLeft: 4,
-  },
+
   establishmentLogo: {
     width: 56,
     height: 56,
@@ -282,7 +263,7 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: colors.orange,
+    backgroundColor: colors.brown[800],
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 24,
@@ -338,30 +319,5 @@ export const styles = StyleSheet.create({
     color: colors.gray[700],
     lineHeight: 20,
   },
-  // ─── Avaliação ─────────────────────────────────────
-  ratingCard: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.separator,
-    borderRadius: 12,
-  },
-  ratingCardTitle: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.bold,
-    color: colors.textPrimary,
-    marginBottom: 6,
-  },
-  ratingCardStarsRow: {
-    flexDirection: "row",
-    marginBottom: 6,
-  },
-  ratingCardComment: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.regular,
-    fontStyle: "italic",
-    color: colors.gray[700],
-    lineHeight: 18,
-  },
+
 });

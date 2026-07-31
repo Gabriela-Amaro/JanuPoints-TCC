@@ -44,27 +44,5 @@ export const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
-  between: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  rating: {
-    position: "absolute",
-    top: 8,
-    right: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-  },
-  ratingText: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.medium,
-    color: colors.textPrimary,
-  },
-  noStarText: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.regular,
-    color: colors.gray[700],
-  }
+
 });

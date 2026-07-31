@@ -1,5 +1,4 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Star } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -53,7 +52,6 @@ export default function ConfirmarPedidoScreen() {
         {
           text: "OK",
           onPress: () => {
-            // Redireciona para a tela de transações e abre a tela de acompanhamento
             router.replace("/(tabs)/transacoes");
             router.push(`/ticket/resgate/${response.id}`);
           },
@@ -114,19 +112,6 @@ export default function ConfirmarPedidoScreen() {
       : `${BASE_URL}${produto.imagem}`
     : null;
 
-  const renderStars = (rating: number | null) => {
-    const rounded = Math.round(rating ?? 0);
-    return Array.from({ length: 5 }).map((_, i) => (
-      <Star
-        key={i}
-        size={12}
-        color={colors.textPrimary}
-        fill={i < rounded ? colors.textPrimary : "transparent"}
-        style={{ marginRight: 2 }}
-      />
-    ));
-  };
-
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
@@ -135,17 +120,6 @@ export default function ConfirmarPedidoScreen() {
         
         <View style={styles.headerInfo}>
           <Text style={styles.storeName}>{produto.estabelecimento_nome}</Text>
-          <View style={styles.ratingRow}>
-            <Text style={styles.ratingText}>
-              {produto.estabelecimento_media_avaliacoes?.toFixed(1) || "0.0"}
-            </Text>
-            <View style={styles.ratingStars}>
-              {renderStars(produto.estabelecimento_media_avaliacoes)}
-            </View>
-            <Text style={styles.ratingCount}>
-              ({produto.estabelecimento_total_avaliacoes} Avaliações)
-            </Text>
-          </View>
         </View>
 
         {logoUrl ? (
@@ -186,12 +160,12 @@ export default function ConfirmarPedidoScreen() {
           
           <View style={styles.valueRow}>
             <Text style={styles.valueLabel}>Subtotal</Text>
-            <Text style={styles.valueAmount}>JP {produto.pontos}</Text>
+            <Text style={styles.valueAmount}>{produto.pontos} pontos</Text>
           </View>
 
           <View style={[styles.totalRow, { borderTopWidth: 1, borderTopColor: colors.separator }]}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalAmount}>JP {produto.pontos}</Text>
+            <Text style={styles.totalAmount}>{produto.pontos} pontos</Text>
           </View>
         </View>
       </ScrollView>

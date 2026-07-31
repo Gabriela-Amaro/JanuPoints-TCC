@@ -2,7 +2,7 @@ from django.test import TestCase
 from usuarios.serializers import AdministradorRegistrationSerializer
 from usuarios.models import Administrador, Usuario
 from estabelecimentos.models import Estabelecimento
-from rest_framework.test import APIRequestFactory, force_authenticate
+from rest_framework.test import APIRequestFactory
 
 
 class AdministradorRegistrationSerializerTest(TestCase):

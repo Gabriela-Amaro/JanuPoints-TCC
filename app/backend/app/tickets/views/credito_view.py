@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
-from django.db.models import Avg, Count
+
 
 
 from ..models import TicketCredito
@@ -16,10 +16,7 @@ class TicketCreditoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        base = TicketCredito.objects.select_related("estabelecimento").annotate(
-            media_avaliacoes=Avg("estabelecimento__avaliacoes__nota"),
-            total_avaliacoes=Count("estabelecimento__avaliacoes"),
-        )
+        base = TicketCredito.objects.select_related("estabelecimento")
         if user.is_superuser:
             return base.all()
         if hasattr(user, 'cliente'):

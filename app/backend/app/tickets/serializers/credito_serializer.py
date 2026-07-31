@@ -51,18 +51,13 @@ class TicketCreditoCreateSerializer(serializers.ModelSerializer):
         )
         return ticket
 
-class TicketAvaliacaoSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    nota = serializers.IntegerField(read_only=True)
-    comentario = serializers.CharField(read_only=True)
+
 
 class TicketCreditoReadSerializer(serializers.ModelSerializer):
     nome_estabelecimento = serializers.CharField(source='estabelecimento.nome', read_only=True)
     nome_cliente = serializers.CharField(source='cliente.nome', read_only=True)
     logo_estabelecimento = serializers.ImageField(source='estabelecimento.logotipo', read_only=True, default=None)
-    media_avaliacoes = serializers.FloatField(read_only=True)
-    total_avaliacoes = serializers.IntegerField(read_only=True)
-    avaliacao = TicketAvaliacaoSerializer(read_only=True)
+
 
     class Meta:
         model = TicketCredito

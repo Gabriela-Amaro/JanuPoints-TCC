@@ -29,10 +29,3 @@ class TicketCredito(models.Model):
         if not self.codigo:
             self.codigo = str(uuid.uuid4())[:8].upper()
         super().save(*args, **kwargs)
-
-    @property
-    def avaliacao(self):
-        from avaliacoes.models import AvaliacaoEstabelecimento
-        from django.contrib.contenttypes.models import ContentType
-        ct = ContentType.objects.get_for_model(self.__class__)
-        return AvaliacaoEstabelecimento.objects.filter(content_type=ct, object_id=self.id).first()

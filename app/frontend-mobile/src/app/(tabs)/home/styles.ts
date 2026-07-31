@@ -1,4 +1,3 @@
-
 import { StyleSheet } from "react-native";
 import { colors } from "../../../constants/Colors";
 import { FontFamily, FontSize } from "../../../constants/Fonts";
@@ -7,62 +6,52 @@ export const styles = StyleSheet.create({
   headerContent: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
+  },
+  eyebrow: {
+    fontSize: FontSize.small,
+    fontFamily: FontFamily.medium,
+    color: colors.brown[800],
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   greeting: {
     fontSize: FontSize.title,
-    fontFamily: FontFamily.medium,
-    color: colors.black[900],
+    fontFamily: FontFamily.bold,
+    color: colors.textPrimary,
+    marginTop: 2,
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: 20,
   },
-  sectionTitle: {
-    fontSize: FontSize.subtitle,
-    fontFamily: FontFamily.medium,
-    color: colors.gray[700],
-    paddingLeft: 8,
-    marginTop: 16,
-    marginBottom: 16,
+  introCard: {
+    backgroundColor: colors.brown[100],
+    borderRadius: 16,
+    padding: 18,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.brown[800],
   },
-  // lojas
-  storeCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: 12,
-  },
-  storeLogo: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-  },
-  storeLogoPlaceholder: {
-    backgroundColor: colors.brown[400],
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  storeLogoText: {
+  introTitle: {
     fontSize: FontSize.subtitle,
     fontFamily: FontFamily.bold,
-    color: colors.white,
-  },
-  storeInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  storeName: {
-    fontSize: FontSize.body,
-    fontFamily: FontFamily.medium,
     color: colors.textPrimary,
+    marginBottom: 6,
   },
-  storeDescription: {
+  introText: {
     fontSize: FontSize.description,
     fontFamily: FontFamily.regular,
     color: colors.gray[700],
-    marginTop: 2,
+    lineHeight: 20,
   },
+  sectionTitle: {
+    fontSize: FontSize.subtitle,
+    fontFamily: FontFamily.bold,
+    color: colors.textPrimary,
+    marginTop: 26,
+    marginBottom: 14,
+  },
+
   emptyText: {
     fontSize: FontSize.description,
     fontFamily: FontFamily.regular,

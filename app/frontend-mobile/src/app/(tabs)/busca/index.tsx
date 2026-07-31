@@ -1,150 +1,70 @@
 import React, { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Text, TextInput, View } from "react-native";
 import { EstabelecimentoCard } from "../../../components/EstabelecimentoCard";
-import { ProdutoCard } from "../../../components/ProdutoCard/Busca";
-import { ScreenContainer } from "../../../components/ScreenContainer/tabs/ScreenContainer";
 import { RefreshableFlatList } from "../../../components/RefreshableFlatList";
-import { styles } from "./styles";
+import { ScreenContainer } from "../../../components/ScreenContainer/tabs/ScreenContainer";
 import { colors } from "../../../constants/Colors";
 import Icon from "../../../constants/icons";
 import { useEstabelecimentos } from "../../../hooks/useEstabelecimentos";
-import { useProdutos } from "../../../hooks/useProdutos";
+import { styles } from "./styles";
 
-type SearchMode = "lojas" | "produtos";
-
+/** Busca acadêmica limitada aos restaurantes parceiros. */
 export default function Busca() {
   const [searchText, setSearchText] = useState("");
-  const [mode, setMode] = useState<SearchMode>("lojas");
-
-  const searchQuery = searchText.length >= 1 ? searchText : undefined;
-
-  const { data: estabelecimentos, loading: loadingLojas, refetch: refetchLojas } =
-    useEstabelecimentos(mode === "lojas" ? searchQuery : undefined);
-
-  const { data: produtos, loading: loadingProdutos, refetch: refetchProdutos } =
-    useProdutos(mode === "produtos" ? searchQuery : undefined);
-
-  const loading = mode === "lojas" ? loadingLojas : loadingProdutos;
+  const searchQuery = searchText.trim().length >= 1 ? searchText.trim() : undefined;
+  const {
+    data: estabelecimentos,
+    loading,
+    refetch,
+  } = useEstabelecimentos(searchQuery);
 
   const handleRefresh = useCallback(async () => {
-    if (mode === "lojas") {
-      await refetchLojas();
-    } else {
-      await refetchProdutos();
-    }
-  }, [mode, refetchLojas, refetchProdutos]);
+    await refetch();
+  }, [refetch]);
 
   return (
     <ScreenContainer
       headerContent={
-        <>
-        {/* Campo de busca */}
         <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color={colors.white} />
+          <Icon name="search" size={20} color={colors.brown[800]} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Procure por Lojas ou Produtos"
-            placeholderTextColor={colors.white}
+            placeholder="Buscar restaurante"
+            placeholderTextColor={colors.gray[500]}
             value={searchText}
             onChangeText={setSearchText}
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="search"
           />
         </View>
-        </>
       }
     >
       <View style={styles.content}>
-        {/* Switch: Lojas / Produtos */}
-        <View style={styles.switchSearchContainer}>
-          <TouchableOpacity
-            onPress={() => setMode("lojas")}
-            style={[
-              styles.switchSearchContent,
-              mode === "lojas" && styles.switchSearchActivated,
-            ]}
-          >
-            <Text
-              style={[
-                styles.switchSearchText,
-                mode === "lojas" && { color: colors.textPrimary },
-              ]}
-            >
-              Lojas
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setMode("produtos")}
-            style={[
-              styles.switchSearchContent,
-              mode === "produtos" && styles.switchSearchActivated,
-            ]}
-          >
-            <Text
-              style={[
-                styles.switchSearchText,
-                mode === "produtos" && { color: colors.textPrimary },
-              ]}
-            >
-              Produtos
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Resultados */}
+        <Text style={styles.title}>Buscar restaurantes</Text>
         {loading ? (
           <ActivityIndicator
             size="large"
             color={colors.brown[800]}
             style={{ marginTop: 40 }}
           />
-        ) : mode === "lojas" ? (
-          // === Lista de Lojas ===
-          estabelecimentos.length === 0 ? (
-            <Text style={styles.emptyText}>
-              {searchText.length >= 1
-                ? "Nenhum estabelecimento encontrado."
-                : "Digite pelo menos 1 caractere para buscar."}
-            </Text>
-          ) : (
-            <RefreshableFlatList
-              key="lojas"
-              data={estabelecimentos}
-              keyExtractor={(item) => String(item.id)}
-              renderItem={({ item }) => (
-                <EstabelecimentoCard estabelecimento={item} />
-              )}
-              contentContainerStyle={{ gap: 12, paddingBottom: 16 }}
-              showsVerticalScrollIndicator={false}
-              onRefresh={handleRefresh}
-            />
-          )
+        ) : searchQuery && estabelecimentos.length > 0 ? (
+          <RefreshableFlatList
+            data={estabelecimentos}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={({ item }) => (
+              <EstabelecimentoCard estabelecimento={item} />
+            )}
+            contentContainerStyle={{ gap: 12, paddingBottom: 24 }}
+            showsVerticalScrollIndicator={false}
+            onRefresh={handleRefresh}
+          />
         ) : (
-          // === Grid de Produtos ===
-          produtos.length === 0 ? (
-            <Text style={styles.emptyText}>
-              {searchText.length >= 1
-                ? "Nenhum produto encontrado."
-                : "Digite pelo menos 1 caractere para buscar."}
-            </Text>
-          ) : (
-            <RefreshableFlatList
-              key="produtos"
-              data={produtos}
-              keyExtractor={(item) => String(item.id)}
-              renderItem={({ item }) => <ProdutoCard produto={item} />}
-              numColumns={2}
-              contentContainerStyle={{ paddingBottom: 16 }}
-              showsVerticalScrollIndicator={false}
-              onRefresh={handleRefresh}
-            />
-          )
+          <Text style={styles.emptyText}>
+            {searchQuery
+              ? "Nenhum restaurante encontrado."
+              : "Digite o nome de um restaurante para buscar."}
+          </Text>
         )}
       </View>
     </ScreenContainer>

@@ -69,8 +69,8 @@ export default function Login() {
       >
         {/* Logo / Título */}
         <View style={styles.header}>
-          <Text style={styles.appName}>Janu Prime</Text>
-          <Text style={styles.subtitle}>Entre na sua conta</Text>
+          <Text style={styles.appName}>JanuPoints</Text>
+          <Text style={styles.subtitle}>Fidelização que valoriza o comércio local</Text>
         </View>
 
         {/* Formulário */}

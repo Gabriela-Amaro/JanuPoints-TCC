@@ -1,85 +1,151 @@
-import { Dimensions, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { colors } from "../../../constants/Colors";
 import { FontFamily, FontSize } from "../../../constants/Fonts";
 
-const { height: screenHeight, width: screenWidth } = Dimensions.get("window");
-
 export const styles = StyleSheet.create({
   headerContent: {
-    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
   },
   headerLabel: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.regular,
-    color: colors.gray[700],
+    fontSize: FontSize.small,
+    fontFamily: FontFamily.medium,
+    color: colors.brown[800],
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  headerTitle: {
+    fontSize: FontSize.title,
+    fontFamily: FontFamily.bold,
+    color: colors.textPrimary,
+    marginTop: 2,
   },
   headerPoints: {
-    fontSize: 28,
+    fontSize: FontSize.body,
     fontFamily: FontFamily.bold,
     color: colors.brown[800],
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 12,
+    padding: 20,
   },
-  sectionTitle: {
-    fontSize: FontSize.title,
-    fontFamily: FontFamily.medium,
-    color: colors.textPrimary,
-    marginTop: 16,
-    marginBottom: 4,
-  },
-  dateLabel: {
-    fontSize: FontSize.small,
+  helperText: {
+    fontSize: FontSize.description,
     fontFamily: FontFamily.regular,
     color: colors.gray[700],
-    marginTop: 12,
+    marginBottom: 16,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 16,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+  },
+  tabButtonActive: {
+    backgroundColor: colors.brown[800],
+  },
+  tabText: {
+    fontSize: 11,
+    fontFamily: FontFamily.medium,
+    color: colors.gray[700],
+  },
+  tabTextActive: {
+    color: colors.white,
+    fontFamily: FontFamily.bold,
+  },
+  sectionContainer: {
     marginBottom: 8,
   },
-  // Card de transação (em andamento)
-  card: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 14,
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     marginBottom: 12,
   },
-  cardHeader: {
+  sectionTitle: {
+    fontSize: FontSize.body,
+    fontFamily: FontFamily.bold,
+    color: colors.textPrimary,
+  },
+  badgePending: {
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  badgePendingText: {
+    fontSize: FontSize.small,
+    fontFamily: FontFamily.bold,
+    color: colors.warning,
+  },
+  badgeFinished: {
+    backgroundColor: colors.brown[100],
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  badgeFinishedText: {
+    fontSize: FontSize.small,
+    fontFamily: FontFamily.bold,
+    color: colors.brown[800],
+  },
+  emptySectionCard: {
+    backgroundColor: colors.backgroundPrimary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderStyle: "dashed",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  emptySectionText: {
+    fontSize: FontSize.description,
+    fontFamily: FontFamily.regular,
+    color: colors.gray[500],
+  },
+  card: {
+    backgroundColor: colors.backgroundPrimary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 12,
+  },
+  cardTop: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  cardTitleBlock: {
+    flex: 1,
   },
   cardTitle: {
     fontSize: FontSize.body,
     fontFamily: FontFamily.bold,
     color: colors.textPrimary,
   },
-  cardPoints: {
-    fontSize: FontSize.body,
-    fontFamily: FontFamily.medium,
-  },
-  pointsPositive: {
-    color: colors.successDark,
-  },
-  pointsNegative: {
-    color: colors.error,
-  },
-  pointsMuted: {
-    color: colors.gray[500],
-  },
-  // Linha da loja
   storeRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    flex: 1,
+    gap: 6,
+    marginTop: 4,
   },
   storeLogo: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
   },
   storeLogoPlaceholder: {
     backgroundColor: colors.brown[400],
@@ -91,270 +157,40 @@ export const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     color: colors.white,
   },
-  storeDetails: {
+  storeName: {
+    fontSize: FontSize.description,
+    fontFamily: FontFamily.regular,
+    color: colors.gray[700],
     flex: 1,
   },
-  storeName: {
-    fontSize: FontSize.small,
-    fontFamily: FontFamily.medium,
-    color: colors.textSecondary,
+  points: {
+    fontSize: FontSize.description,
+    fontFamily: FontFamily.bold,
+    textAlign: "right",
   },
-  storeRatingRow: {
+  cardBottom: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    gap: 3,
-  },
-  storeRatingText: {
-    fontSize: FontSize.small,
-    fontFamily: FontFamily.regular,
-    color: colors.textPrimary,
-  },
-  acompanharRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 12,
-    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: colors.separator,
-    gap: 4,
+    marginTop: 14,
+    paddingTop: 10,
   },
-  acompanharText: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.medium,
-    color: colors.brown[800],
+  date: {
+    fontSize: FontSize.small,
+    fontFamily: FontFamily.regular,
+    color: colors.gray[700],
   },
-  // Card de transação (finalizado)
-  cardFinalizado: {
-    borderWidth: 1,
-    // borderLeftWidth: 2, 
-    // borderBottomWidth: 2,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-  },
-  statusBadge: {
+  status: {
     fontSize: FontSize.small,
     fontFamily: FontFamily.bold,
-    marginBottom: 8,
-  },
-  statusAprovado: {
-    color: colors.successDark,
-  },
-  statusConcluido: {
-    color: colors.successDark,
-  },
-  statusCancelado: {
-    color: colors.gray[700],
-  },
-  statusRecusado: {
-    color: colors.errorDark,
-  },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 12,
-  },
-  notaText: {
-    fontSize: FontSize.small,
-    fontFamily: FontFamily.regular,
-    color: colors.gray[700],
-  },
-  avalieRow: {
-    paddingTop: 6,
-    marginTop: 8,
-    flexDirection: 'row',
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: colors.separator,
-  },
-  avalieText: {
-    fontSize: FontSize.small,
-    fontFamily: FontFamily.regular,
-    color: colors.gray[700],
-    marginBottom: 4,
-  },
-  starsRow: {
-    flexDirection: "row",
-    gap: 4,
-  },
-  detalhesRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 6,
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: colors.separator,
-    gap: 4,
-  },
-  detalhesText: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.medium,
-    color: colors.brown[800],
   },
   emptyText: {
     fontSize: FontSize.body,
     fontFamily: FontFamily.regular,
     color: colors.gray[700],
     textAlign: "center",
-    marginTop: 40,
-  },
-  // Barra Ordenar + Filtro
-  toolbarRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
-    zIndex: 10,
-  },
-  ordenarBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  ordenarBtnText: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.medium,
-    color: colors.textPrimary,
-  },
-  // Dropdown menu
-  dropdownMenu: {
-    position: "absolute",
-    top: 38,
-    left: 0,
-    backgroundColor: colors.backgroundPrimary,
-    borderRadius: 10,
-    paddingVertical: 6,
-    minWidth: 160,
-    shadowColor: colors.black[900],
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
-    zIndex: 20,
-  },
-  dropdownMenuRight: {
-    left: undefined as unknown as number,
-    right: 0,
-  },
-  dropdownItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  dropdownItemText: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.regular,
-    color: colors.textPrimary,
-  },
-  dropdownItemActive: {
-    color: colors.brown[800],
-    fontFamily: FontFamily.bold,
-  },
-  backdrop: {
-    position: "absolute",
-    top: -screenHeight,
-    bottom: -screenHeight,
-    left: -screenWidth,
-    right: -screenWidth,
-    backgroundColor: "transparent",
-    zIndex: 15,
-  },
-  // Modal de avaliação do estabelecimento
-  evalModalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-  },
-  evalModalCard: {
-    backgroundColor: colors.backgroundPrimary,
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 20,
-    width: "100%",
-    maxWidth: 320,
-    alignItems: "center",
-    elevation: 4,
-    shadowColor: colors.black[900],
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-  },
-  evalModalTitle: {
-    fontSize: FontSize.subtitle,
-    fontFamily: FontFamily.bold,
-    color: colors.textPrimary,
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  evalModalSubtitle: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.medium,
-    color: colors.gray[700],
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  evalStarsContainer: {
-    flexDirection: "row",
-    gap: 8,
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  evalStarTouch: {
-    padding: 2,
-  },
-  evalCommentInput: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: colors.separator,
-    borderRadius: 10,
-    padding: 12,
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.regular,
-    color: colors.textPrimary,
-    backgroundColor: "transparent",
-    minHeight: 80,
-    textAlignVertical: "top",
-    marginBottom: 20,
-  },
-  evalModalButtons: {
-    flexDirection: "row",
-    gap: 12,
-    width: "100%",
-  },
-  btnEvalCancel: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  btnEvalCancelText: {
-    fontSize: FontSize.body,
-    fontFamily: FontFamily.medium,
-    color: colors.gray[700],
-  },
-  btnEvalSubmit: {
-    flex: 1,
-    backgroundColor: colors.orange,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  btnEvalSubmitText: {
-    fontSize: FontSize.body,
-    fontFamily: FontFamily.bold,
-    color: colors.white,
+    marginTop: 48,
   },
 });

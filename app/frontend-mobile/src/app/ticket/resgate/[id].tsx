@@ -9,11 +9,11 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Star } from "lucide-react-native";
+
 import { colors } from "../../../constants/Colors";
 import { api, ApiError, BASE_URL } from "../../../services/api";
-import { useAuth } from "../../../contexts/AuthContext";
-import type { TicketDebito, AvaliacaoEstabelecimento } from "../../../types";
+
+import type { TicketDebito } from "../../../types";
 import { TicketHeader } from "../../../components/TicketDetail/TicketHeader";
 import { EstablishmentHeader } from "../../../components/TicketDetail/EstablishmentHeader";
 import { TicketCodeInfo } from "../../../components/TicketDetail/TicketCodeInfo";
@@ -173,15 +173,10 @@ export default function AcompanharResgateScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <TicketHeader title="Resgate de Pontos" />
+      <TicketHeader title="Resgate de pontos" />
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <EstablishmentHeader
-          name={storeName}
-          logoUrl={logoUrl}
-          mediaAvaliacoes={ticket.media_avaliacoes}
-          totalAvaliacoes={ticket.total_avaliacoes}
-        />
+        <EstablishmentHeader name={storeName} logoUrl={logoUrl} />
 
         <TicketCodeInfo codigo={ticket.codigo} createdAt={ticket.created_at} />
 
@@ -195,34 +190,15 @@ export default function AcompanharResgateScreen() {
         />
 
         <TicketValues
-          rows={[{ label: "Subtotal", amount: `JP ${ticket.pontos}` }]}
+          rows={[{ label: "Subtotal", amount: `${ticket.pontos} pontos` }]}
           totalLabel="Total"
-          totalAmount={`JP ${ticket.pontos}`}
+          totalAmount={`${ticket.pontos} pontos`}
         />
 
         {isFinalizado && <TicketUpdates rows={updateRows} />}
 
         {isFinalizado && <TicketObservation text={ticket.observacao} />}
 
-        {ticket.avaliacao && (
-          <View style={styles.ratingCard}>
-            <Text style={styles.ratingCardTitle}>Sua avaliação</Text>
-            <View style={styles.ratingCardStarsRow}>
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Star
-                  key={i}
-                  size={14}
-                  color={i <= (ticket.avaliacao?.nota ?? 0) ? colors.orange : colors.gray[500]}
-                  fill={i <= (ticket.avaliacao?.nota ?? 0) ? colors.orange : "transparent"}
-                  style={{ marginRight: 4 }}
-                />
-              ))}
-            </View>
-            {ticket.avaliacao.comentario ? (
-              <Text style={styles.ratingCardComment}>"{ticket.avaliacao.comentario}"</Text>
-            ) : null}
-          </View>
-        )}
 
         <View style={{ height: 80 }} />
       </ScrollView>

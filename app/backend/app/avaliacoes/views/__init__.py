@@ -1,2 +1,0 @@
-from .avaliacao_estabelecimento_view import AvaliacaoEstabelecimentoViewSet
-from .avaliacao_plataforma_view import AvaliacaoPlataformaViewSet

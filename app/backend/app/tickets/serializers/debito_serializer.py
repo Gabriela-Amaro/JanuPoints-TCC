@@ -37,10 +37,7 @@ class TicketDebitoCreateSerializer(serializers.ModelSerializer):
             )
         return ticket
 
-class TicketAvaliacaoSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    nota = serializers.IntegerField(read_only=True)
-    comentario = serializers.CharField(read_only=True)
+
 
 class TicketDebitoReadSerializer(serializers.ModelSerializer):
     nome_produto = serializers.CharField(source='produto.nome', read_only=True)
@@ -50,9 +47,7 @@ class TicketDebitoReadSerializer(serializers.ModelSerializer):
     nome_estabelecimento = serializers.CharField(source='produto.estabelecimento.nome', read_only=True, default=None)
     logo_estabelecimento = serializers.ImageField(source='produto.estabelecimento.logotipo', read_only=True, default=None)
     estabelecimento = serializers.IntegerField(source='produto.estabelecimento.id', read_only=True)
-    media_avaliacoes = serializers.FloatField(read_only=True)
-    total_avaliacoes = serializers.IntegerField(read_only=True)
-    avaliacao = TicketAvaliacaoSerializer(read_only=True)
+
 
     class Meta:
         model = TicketDebito

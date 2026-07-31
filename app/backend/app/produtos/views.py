@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions, filters
-from django.db.models import Avg, Count
+
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Produto
 from .serializers import ProdutoSerializer
@@ -13,10 +13,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     filterset_fields = ["estabelecimento"]
 
     def get_queryset(self):
-        base = Produto.objects.select_related("estabelecimento").annotate(
-            estabelecimento_media_avaliacoes=Avg("estabelecimento__avaliacoes__nota"),
-            estabelecimento_total_avaliacoes=Count("estabelecimento__avaliacoes"),
-        )
+        base = Produto.objects.select_related("estabelecimento")
 
         if self.action in ["list", "retrieve"]:
             user = self.request.user

@@ -13,8 +13,6 @@ export const APP_CONFIG = {
     ticketsDebito: "/tickets/debito/",
     ticketsCredito: "/tickets/credito/",
     ticketStream: "/tickets/stream/",
-    anuncios: "/anuncios/",
-    administradores: "/administradores/",
     estabelecimentos: "/estabelecimentos/",
   },
 };

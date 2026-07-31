@@ -85,7 +85,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.backgroundPrimary,
   },
   submitButton: {
-    backgroundColor: colors.orange,
+    backgroundColor: colors.brown[800],
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",

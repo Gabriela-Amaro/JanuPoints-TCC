@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.db import transaction
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from phonenumber_field.serializerfields import PhoneNumberField
+
 
 from ..models import Usuario, Cliente
 from ..serializers import UsuarioSerializer

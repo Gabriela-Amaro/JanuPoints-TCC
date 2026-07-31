@@ -191,15 +191,10 @@ export default function CriarTicketAcumuloScreen() {
     >
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {/* Header Topo */}
-        <TicketHeader title="Pontuar" />
+        <TicketHeader title="Enviar nota fiscal" />
 
         {/* Detalhes do Estabelecimento */}
-        <EstablishmentHeader
-          name={storeName}
-          logoUrl={logoUrl}
-          mediaAvaliacoes={establishment?.media_avaliacoes ?? 0}
-          totalAvaliacoes={establishment?.total_avaliacoes ?? 0}
-        />
+        <EstablishmentHeader name={storeName} logoUrl={logoUrl} />
 
         {/* Divisor de Seção */}
         <View style={styles.sectionDivider} />

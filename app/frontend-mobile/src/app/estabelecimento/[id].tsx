@@ -1,6 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronRight, ClipboardList, Star } from "lucide-react-native";
+import { ClipboardList } from "lucide-react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,65 +21,11 @@ import { api, BASE_URL } from "../../services/api";
 import type { Estabelecimento, Produto } from "../../types";
 import { styles } from "./styles";
 
-interface FotoEspaco {
-  id: number;
-  estabelecimento: number;
-  foto: string;
-}
+
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
-const DAYS_ORDER = [
-  { key: "segunda", label: "Segunda-feira", dayNum: 1 },
-  { key: "terca", label: "Terça-feira", dayNum: 2 },
-  { key: "quarta", label: "Quarta-feira", dayNum: 3 },
-  { key: "quinta", label: "Quinta-feira", dayNum: 4 },
-  { key: "sexta", label: "Sexta-feira", dayNum: 5 },
-  { key: "sabado", label: "Sábado", dayNum: 6 },
-  { key: "domingo", label: "Domingo", dayNum: 0 },
-];
 
-/** Retorna se o estabelecimento está aberto agora */
-function getHorarioStatus(horario: Record<string, string>): {
-  isOpen: boolean;
-  label: string;
-} {
-  const diasMap: Record<number, string> = {
-    0: "domingo",
-    1: "segunda",
-    2: "terca",
-    3: "quarta",
-    4: "quinta",
-    5: "sexta",
-    6: "sabado",
-  };
-
-  const now = new Date();
-  const diaKey = diasMap[now.getDay()];
-  const horarioHoje = horario?.[diaKey];
-
-  if (!horarioHoje || horarioHoje.toLowerCase() === "fechado") {
-    return { isOpen: false, label: "Fechado" };
-  }
-
-  const match = horarioHoje.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
-  if (match) {
-    const openH = parseInt(match[1]);
-    const openM = parseInt(match[2]);
-    const closeH = parseInt(match[3]);
-    const closeM = parseInt(match[4]);
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const openMinutes = openH * 60 + openM;
-    const closeMinutes = closeH * 60 + closeM;
-
-    if (currentMinutes >= openMinutes && currentMinutes < closeMinutes) {
-      return { isOpen: true, label: `Aberto · Fecha às ${match[3]}:${match[4]}` };
-    }
-    return { isOpen: false, label: `Fechado · Abre às ${match[1]}:${match[2]}` };
-  }
-
-  return { isOpen: true, label: horarioHoje };
-}
 
 function ProductCard({ produto }: { produto: Produto }) {
   const router = useRouter();
@@ -101,7 +47,7 @@ function ProductCard({ produto }: { produto: Produto }) {
             {produto.descricao}
           </Text>
         ) : null}
-        <Text style={styles.productPoints}>JP {produto.pontos}</Text>
+        <Text style={styles.productPoints}>{produto.pontos} pontos</Text>
       </View>
       {imageUrl ? (
         <Image source={{ uri: imageUrl }} style={styles.productImage} />
@@ -121,11 +67,10 @@ export default function EstabelecimentoScreen() {
 
   const [estabelecimento, setEstabelecimento] = useState<Estabelecimento | null>(null);
   const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [fotosUrls, setFotosUrls] = useState<string[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [showHoursModal, setShowHoursModal] = useState(false);
 
   const handlePontuar = async () => {
     try {
@@ -160,22 +105,14 @@ export default function EstabelecimentoScreen() {
       const est = await api.get<Estabelecimento>(`/api/estabelecimentos/${id}/`);
       setEstabelecimento(est);
 
-      const [prodsResult, fotosResult] = await Promise.allSettled([
+      const prodsResult = await Promise.allSettled([
         api.get<Produto[]>(`/api/produtos/?estabelecimento=${id}`),
-        api.get<FotoEspaco[]>(`/api/fotos-espaco/?estabelecimento=${id}`),
-      ]);
+      ]).then(([result]) => result);
 
       if (prodsResult.status === "fulfilled") {
         setProdutos(prodsResult.value);
       }
 
-      if (fotosResult.status === "fulfilled") {
-        setFotosUrls(
-          fotosResult.value
-            .filter((f) => f.foto)
-            .map((f) => (f.foto.startsWith("http") ? f.foto : `${BASE_URL}${f.foto}`))
-        );
-      }
     } catch (err) {
       console.error("Erro ao buscar estabelecimento:", err);
     } finally {
@@ -209,22 +146,27 @@ export default function EstabelecimentoScreen() {
       : `${BASE_URL}${estabelecimento.logotipo}`
     : null;
 
-  const horarioStatus = getHorarioStatus(estabelecimento.horario_funcionamento ?? {});
   const bannerHeight = 200;
 
+  // Imagens das recompensas (produtos) para o carrossel do banner
+  const productImages: string[] = produtos
+    .filter((p): p is Produto & { imagem: string } => Boolean(p.imagem && p.imagem.trim() !== ""))
+    .map((p) => (p.imagem.startsWith("http") ? p.imagem : `${BASE_URL}${p.imagem}`));
+
+  const bannerImages: string[] = productImages;
+
   return (
-    
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
 
-        {/* Banner — carrossel de fotos do espaço */}
+        {/* Banner — carrossel de fotos das recompensas/produtos */}
         <View style={[styles.bannerContainer, { height: bannerHeight }]}>
-          {fotosUrls.length > 0 ? (
+          {bannerImages.length > 0 ? (
             <Carousel
               loop
-              autoPlay={fotosUrls.length > 1}
+              autoPlay={bannerImages.length > 1}
               autoPlayInterval={3000}
-              data={fotosUrls}
+              data={bannerImages}
               width={SCREEN_WIDTH}
               height={bannerHeight}
               renderItem={({ item }) => (
@@ -256,59 +198,18 @@ export default function EstabelecimentoScreen() {
 
           {/* Informações */}
           <View style={styles.infoSection}>
-            {/* Nome */}
-            <TouchableOpacity
-              style={styles.nameRow}
-              onPress={() => router.push(`/estabelecimento/avaliacoes-info/${id}?initialTab=informacoes`)}
-            >
-              <Text style={styles.name}>{estabelecimento.nome}</Text>
-              <ChevronRight size={20} color={colors.brown[800]} />
-            </TouchableOpacity>
+            <Text style={styles.name}>{estabelecimento.nome}</Text>
 
-            {/* Avaliação */}
-            <TouchableOpacity
-              style={styles.ratingRow}
-              onPress={() => router.push(`/estabelecimento/avaliacoes-info/${id}?initialTab=avaliacoes`)}
-            >
-              {estabelecimento.media_avaliacoes != null ? (
-                <>
-                  <Text style={styles.ratingText}>
-                    {estabelecimento.media_avaliacoes.toFixed(1)}
-                  </Text>
-                  <Star size={14} color={colors.textPrimary} fill={colors.textPrimary} />
-                  <Text style={styles.ratingCount}>
-                    ({estabelecimento.total_avaliacoes} Avaliações)
-                  </Text>
-                </>
-              ) : (
-                <Text style={styles.ratingCount}>Sem avaliações</Text>
-              )}
-              <View style={{ flex: 1 }} />
-              <ChevronRight size={18} color={colors.brown[800]} />
-            </TouchableOpacity>
-
-            {/* Horário */}
-            <TouchableOpacity
-              style={styles.hoursRow}
-              onPress={() => setShowHoursModal(true)}
-            >
-              <Text style={styles.hoursLabel}>Horário de funcionamento: Hoje</Text>
-              <View style={{ flex: 1 }} />
-              <Text
-                style={[
-                  styles.hoursStatus,
-                  horarioStatus.isOpen ? styles.hoursOpen : styles.hoursClosed,
-                ]}
-              >
-                {horarioStatus.label}
+            {estabelecimento.descricao ? (
+              <Text style={styles.description}>
+                {estabelecimento.descricao}
               </Text>
-              <ChevronRight size={18} color={colors.brown[800]} />
-            </TouchableOpacity>
+            ) : null}
           </View>
 
-          {/* Produtos */}
+          {/* Recompensas */}
           <View style={styles.productsHeader}>
-            <Text style={styles.productsTitle}>Produtos</Text>
+            <Text style={styles.productsTitle}>Recompensas disponíveis</Text>
           </View>
 
           {produtos.length === 0 ? (
@@ -321,10 +222,10 @@ export default function EstabelecimentoScreen() {
         </View>
       </ScrollView>
 
-      {/* Botão Pontuar */}
+      {/* Envio de nota fiscal */}
       <TouchableOpacity style={styles.pontuarBtn} onPress={handlePontuar}>
         <ClipboardList size={18} color={colors.white} />
-        <Text style={styles.pontuarText}>Pontuar</Text>
+        <Text style={styles.pontuarText}>Enviar nota fiscal</Text>
       </TouchableOpacity>
 
       {/* Modal de Revisão da Foto */}
@@ -379,42 +280,7 @@ export default function EstabelecimentoScreen() {
         </View>
       </Modal>
 
-      {/* Modal de Horários de Funcionamento com Dia Atual Destacado */}
-      <Modal
-        visible={showHoursModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowHoursModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowHoursModal(false)}
-        >
-          <TouchableOpacity
-            style={styles.modalCard}
-            activeOpacity={1}
-          >
-            {DAYS_ORDER.map((day) => {
-              const time = estabelecimento.horario_funcionamento?.[day.key] || "Fechado";
-              const isToday = day.dayNum === new Date().getDay();
-              
-              return (
-                <View key={day.key} style={styles.hoursRowModal}>
-                  <Text
-                    style={[
-                      styles.hoursTextModal,
-                      isToday && styles.hoursTextModalToday,
-                    ]}
-                  >
-                    {day.label}: {time}
-                  </Text>
-                </View>
-              );
-            })}
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+
     </View>
   );
 }

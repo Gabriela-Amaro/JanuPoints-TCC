@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -10,7 +9,7 @@ import { ProfileHeader } from "../../components/ProfileHeader";
 import { AccountField } from "../../components/AccountField";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
-import { api, ApiError, formatErrorMessage } from "../../services/api";
+import { api, formatErrorMessage } from "../../services/api";
 import { maskCpf, maskPhone } from "../../utils/masks";
 import { styles } from "./styles";
 
@@ -26,6 +25,12 @@ export default function ContaScreen() {
   const [loadingField, setLoadingField] = useState<
     "nome" | "email" | "telefone" | null
   >(null);
+
+  useEffect(() => {
+    setNome(user?.nome ?? "");
+    setEmail(user?.email ?? "");
+    setTelefone(user?.telefone ? maskPhone(user.telefone) : "+55 ");
+  }, [user]);
 
   // Comparações de estado
   const isNomeModified = nome.trim() !== (user?.nome ?? "").trim();

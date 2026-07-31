@@ -48,11 +48,7 @@ INSTALLED_APPS = [
     "usuarios.apps.UsuariosConfig",
     "estabelecimentos",
     "produtos",
-    "anuncios",
-    "fotos_espaco",
-    "avaliacoes",
     "tickets",
-    "logs",
     "constance",
     "constance.backends.database",
 ]
@@ -64,9 +60,7 @@ CONSTANCE_CONFIG = {
         "Quantos pontos o cliente ganha por R$ 1 gasto",
         float,
     ),
-    "PORCENTAGEM_CASHBACK": (5.0, "Porcentagem do cashback (ex: 5 para 5%)", float),
-    "INTERVALO_COMPRA": (30, "Intervalo mínimo entre compras em dias", int),
-    "TEMPO_VALIDADE_PONTOS": (365, "Tempo de validade dos pontos em dias", int),
+    "PORCENTAGEM_CASHBACK": (5.0, "Porcentagem usada para calcular o custo em pontos", float),
 }
 
 CONSTANCE_BACKEND = "constance.backends.database.DatabaseBackend"

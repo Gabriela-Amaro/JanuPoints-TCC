@@ -61,13 +61,9 @@ export const styles = StyleSheet.create({
   },
   // Info principal
   infoSection: {
-    // paddingHorizontal: 20,
-  },
-  nameRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     paddingHorizontal: 20,
+    paddingTop: 6,
+    paddingBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: colors.separator,
   },
@@ -75,52 +71,16 @@ export const styles = StyleSheet.create({
     fontSize: 22,
     fontFamily: FontFamily.bold,
     color: colors.textPrimary,
-    flex: 1,
+    marginBottom: 4,
   },
-  // Avaliação
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.separator,
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.medium,
-    color: colors.textPrimary,
-  },
-  ratingCount: {
+  description: {
     fontSize: FontSize.description,
     fontFamily: FontFamily.regular,
     color: colors.gray[700],
+    lineHeight: 20,
+    marginTop: 4,
   },
-  // Horário
-  hoursRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  hoursLabel: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.regular,
-    color: colors.textPrimary,
-  },
-  hoursStatus: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.medium,
-    paddingRight: 8,
-  },
-  hoursOpen: {
-    color: colors.successDark,
-  },
-  hoursClosed: {
-    color: colors.errorDark,
-  },
+
   // Seção Produtos
   productsHeader: {
     flexDirection: "row",
@@ -182,7 +142,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: colors.orange,
+    backgroundColor: colors.brown[800],
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 24,
@@ -259,7 +219,7 @@ export const styles = StyleSheet.create({
   },
   btnAccept: {
     flex: 1,
-    backgroundColor: colors.orange,
+    backgroundColor: colors.brown[800],
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",
@@ -270,36 +230,5 @@ export const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     color: colors.white,
   },
-  // Modal de Horários de Funcionamento
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-  },
-  modalCard: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 24,
-    width: "92%",
-    maxWidth: 320,
-    elevation: 5,
-    shadowColor: colors.black[900],
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  hoursRowModal: {
-    marginBottom: 14,
-  },
-  hoursTextModal: {
-    fontSize: FontSize.description,
-    fontFamily: FontFamily.regular,
-    color: colors.textPrimary,
-  },
-  hoursTextModalToday: {
-    color: colors.success,
-    fontFamily: FontFamily.medium,
-  },
+
 });

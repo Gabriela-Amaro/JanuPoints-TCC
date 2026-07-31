@@ -3,7 +3,7 @@ export function showPage(pageName) {
   const content = document.getElementById('page-content');
   
   // Verificar se é uma página que requer autenticação
-  const protectedPages = ['dashboard', 'perfil', 'meu-perfil', 'catalogo', 'anuncios', 'transacoes', 'funcionarios', 'metricas', 'auditoria'];
+  const protectedPages = ['dashboard', 'perfil', 'catalogo', 'transacoes'];
   
   if (protectedPages.includes(pageName)) {
     // Verificar autenticação
@@ -59,18 +59,11 @@ export function showPage(pageName) {
   content.innerHTML = getPageContent(pageName);
   content.classList.add('fade-in-up');
   
-  // Atualizar permissões após carregar a página (para atualizar visibilidade do dropdown de admin)
-  if (typeof window.updatePermissionsUI === 'function') {
-    setTimeout(() => {
-      window.updatePermissionsUI();
-    }, 100);
-  }
-  
+
   // Carrega dados assíncronos para páginas específicas
-  if (pageName === 'dashboard' && typeof window.carregarDadosDashboard === 'function') {
-    // Usar setTimeout para garantir que o DOM foi renderizado
+  if (pageName === 'dashboard') {
     setTimeout(() => {
-      window.carregarDadosDashboard();
+      carregarDadosDashboardTcc();
     }, 0);
   }
   
@@ -102,18 +95,8 @@ function getPageContent(pageName) {
       return getPerfilContent();
     case 'catalogo':
       return getCatalogoContent();
-    case 'anuncios':
-      return getAnunciosContent();
     case 'transacoes':
       return getTransacoesContent();
-    case 'funcionarios':
-      return getFuncionariosContent();
-    case 'metricas':
-      return getMetricasContent();
-    case 'auditoria':
-      return getAuditoriaContent();
-    case 'meu-perfil':
-      return getMeuPerfilContent();
     default:
       return getLoginContent(); // Página padrão agora é login
   }
@@ -123,12 +106,7 @@ function getPageContent(pageName) {
 import { getLoginContent } from '../pages/login.js';
 
 import { getForgotPasswordContent } from '../pages/forgot-password.js';
-import { getDashboardContent } from '../pages/dashboard.js';
-import { getPerfilContent } from '../pages/perfil.js';
-import { getCatalogoContent } from '../pages/catalogo.js';
-import { getAnunciosContent } from '../pages/anuncios.js';
-import { getTransacoesContent } from '../pages/transacoes.js';
-import { getFuncionariosContent } from '../pages/funcionarios.js';
-import { getMetricasContent } from '../pages/metricas.js';
-import { getAuditoriaContent } from '../pages/auditoria.js';
-import { getMeuPerfilContent } from '../pages/meu-perfil.js';
+import { getDashboardContent, carregarDadosDashboardTcc } from '../pages/dashboard-tcc.js';
+import { getPerfilContent } from '../pages/perfil-tcc.js';
+import { getCatalogoContent } from '../pages/catalogo-tcc.js';
+import { getTransacoesContent } from '../pages/transacoes-tcc.js';

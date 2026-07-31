@@ -124,8 +124,8 @@ export default function Register() {
       >
         {/* Título */}
         <View style={styles.header}>
-          <Text style={styles.title}>Criar conta</Text>
-          <Text style={styles.subtitle}>Preencha seus dados para começar</Text>
+          <Text style={styles.title}>Participar do JanuPoints</Text>
+          <Text style={styles.subtitle}>Crie seu acesso para acumular e resgatar pontos</Text>
         </View>
 
         {/* Formulário */}
@@ -139,7 +139,7 @@ export default function Register() {
             onChangeText={setNome}
           />
 
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>E-mail</Text>
           <TextInput
             style={styles.input}
             placeholder="seu@email.com"

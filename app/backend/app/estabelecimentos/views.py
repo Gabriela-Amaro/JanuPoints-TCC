@@ -1,16 +1,8 @@
 from rest_framework import viewsets, permissions, mixins, filters
-from django.db.models import Avg, Count
+
 from .models import Estabelecimento
 from .serializers import EstabelecimentoSerializer
 from .permissions import IsSuperUserOfSameEstablishmentOrPlatformAdmin
-
-
-def _annotate_avaliacoes(queryset):
-    """Anota média e total de avaliações no queryset de Estabelecimento."""
-    return queryset.annotate(
-        media_avaliacoes=Avg("avaliacoes__nota"),
-        total_avaliacoes=Count("avaliacoes"),
-    )
 
 
 class EstabelecimentoViewSet(
@@ -26,7 +18,7 @@ class EstabelecimentoViewSet(
     search_fields = ["nome"]
 
     def get_queryset(self):
-        base = _annotate_avaliacoes(Estabelecimento.objects.all())
+        base = Estabelecimento.objects.all()
 
         if self.action in ["list", "retrieve"]:
             user = self.request.user

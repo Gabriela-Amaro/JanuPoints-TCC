@@ -1,3 +1,0 @@
-from .avaliacao_estabelecimento_models import AvaliacaoEstabelecimento
-from .avaliacao_plataforma_models import AvaliacaoPlataforma
-from .avaliacao_base_models import AvaliacaoBase

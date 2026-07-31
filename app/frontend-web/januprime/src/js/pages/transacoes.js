@@ -1,14 +1,9 @@
-import { mockData } from '../config/mockData.js';
-import { debounce } from '../utils/debounce.js';
 import { showNotification } from '../utils/notifications.js';
-import { getMainFooter } from '../components/main-footer.js';
 import { ticketsService } from '../services/tickets.js';
-import { APP_CONFIG } from '../config/app.js';
 import { exibirTicketModal } from '../components/ticket-modal.js';
 
 // Estado global da página
 let transacoesCarregadas = [];
-let transacoesFiltradas = [];
 
 /**
  * Mapeia status do backend para exibição
@@ -31,8 +26,7 @@ async function carregarTransacoes() {
   try {
     const tickets = await ticketsService.listarTodos();
     transacoesCarregadas = Array.isArray(tickets) ? tickets : [];
-    transacoesFiltradas = [...transacoesCarregadas];
-    atualizarExibicaoTransacoes(transacoesFiltradas);
+    atualizarExibicaoTransacoes(transacoesCarregadas);
   } catch (error) {
     console.error('Erro ao carregar transações:', error);
     showNotification('Erro ao carregar transações', 'error');
@@ -52,136 +46,7 @@ async function carregarTransacoes() {
   }
 }
 
-export function getTransacoesContent() {
-  // Carregar transações após renderizar
-  setTimeout(() => {
-    carregarTransacoes();
-  }, 100);
-  return `
-    <div class="container-fluid mb-5">
-      <div class="row mb-4">
-        <div class="col-12">
-          <h1 class="text-gradient mb-0">Transações</h1>
-          <p class="text-muted">Gerencie tickets de crédito e débito</p>
-        </div>
-      </div>
-      
-      <!-- Filtros -->
-      <div class="row mb-4">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-3">
-                  <label for="pesquisaTransacao" class="form-label">Pesquisar</label>
-                  <div class="input-group">
-                    <input type="text" class="form-control" id="pesquisaTransacao" placeholder="Cliente ou ID..." oninput="testPesquisarTransacoes()">
-                    <span class="input-group-text">
-                      <i class="bi bi-search"></i>
-                    </span>
-                  </div>
-                </div>
-                <div class="col-md-2">
-                  <label for="filtroTipo" class="form-label">Tipo</label>
-                  <div class="dropdown">
-                    <select class="form-select" id="filtroTipo" onchange="testPesquisarTransacoes()">
-                      <option value="">Todos</option>
-                      <option value="credito">Crédito</option>
-                      <option value="debito">Débito</option>
-                    </select>
-                    <i class="bi bi-chevron-down dropdown-icon"></i>
-                  </div>
-                </div>
-                <div class="col-md-2">
-                  <label for="filtroStatus" class="form-label">Status</label>
-                  <div class="dropdown">
-                    <select class="form-select" id="filtroStatus" onchange="testPesquisarTransacoes()">
-                      <option value="">Todos</option>
-                      <option value="ABERTO">Pendente</option>
-                      <option value="APROVADO">Aprovado</option>
-                      <option value="RECUSADO">Rejeitado</option>
-                      <option value="CANCELADO">Cancelado</option>
-                    </select>
-                    <i class="bi bi-chevron-down dropdown-icon"></i>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <label for="filtroData" class="form-label">Data</label>
-                  <input type="date" class="form-control" id="filtroData" onchange="testPesquisarTransacoes()">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                  <button class="btn btn-outline-secondary w-100" onclick="limparFiltrosTransacoes()">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Limpar
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Tabela de transações -->
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header">
-              <h6 class="m-0 font-weight-bold text-primary">Lista de Transações</h6>
-            </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-dark table-hover">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Tipo</th>
-                      <th>Cliente</th>
-                      <th>Valor/Pontos</th>
-                      <th>Status</th>
-                      <th>Data</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody id="transacoes-table-body">
-                    <tr>
-                      <td colspan="7" class="text-center py-4">
-                        <div class="spinner-border text-primary" role="status">
-                          <span class="visually-hidden">Carregando transações...</span>
-                        </div>
-                        <p class="mt-2 text-muted">Carregando transações...</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    ${getMainFooter()}
-  `;
-}
 
-// Função de busca automática com debounce
-const pesquisarTransacoesAuto = debounce(() => {
-  aplicarFiltrosTransacoesAuto();
-}, 300);
-
-// Exportar para escopo global
-window.pesquisarTransacoesAuto = pesquisarTransacoesAuto;
-
-// Função alternativa simples para teste
-window.testPesquisarTransacoes = function() {
-  console.log('Teste de pesquisa de transações');
-  const input = document.getElementById('pesquisaTransacao');
-  if (input) {
-    console.log('Input encontrado:', input.value);
-    aplicarFiltrosTransacoesAuto();
-  } else {
-    console.log('Input não encontrado');
-  }
-};
 
 // Função para aplicar filtros automaticamente
 export function aplicarFiltrosTransacoesAuto() {
@@ -311,7 +176,7 @@ function atualizarExibicaoTransacoes(transacoes) {
   }).join('');
   
   tbody.innerHTML = html;
-  transacoesFiltradas = transacoes;
+
 }
 
 // Função para limpar todos os filtros
@@ -326,7 +191,6 @@ export function limparFiltrosTransacoes() {
   if (statusSelect) statusSelect.value = '';
   if (dataInput) dataInput.value = '';
   
-  transacoesFiltradas = [...transacoesCarregadas];
   aplicarFiltrosTransacoesAuto();
 }
 

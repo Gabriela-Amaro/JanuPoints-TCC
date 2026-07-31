@@ -92,7 +92,7 @@ class AdministradorRegistrationSerializer(serializers.ModelSerializer):
 
         if is_creating_superuser and not requesting_user.is_superuser:
             raise serializers.ValidationError(
-                "Você não tem permissão para criar um funcionário super-usuário."
+                "Você não tem permissão para criar um administrador superusuário."
             )
 
         return attrs

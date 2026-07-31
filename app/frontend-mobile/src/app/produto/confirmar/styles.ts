@@ -32,26 +32,7 @@ export const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: 4,
   },
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: FontSize.small,
-    fontFamily: FontFamily.medium,
-    color: colors.textPrimary,
-  },
-  ratingStars: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  ratingCount: {
-    fontSize: FontSize.small,
-    fontFamily: FontFamily.regular,
-    color: colors.gray[500],
-    marginLeft: 4,
-  },
+
   storeLogo: {
     width: 60,
     height: 60,

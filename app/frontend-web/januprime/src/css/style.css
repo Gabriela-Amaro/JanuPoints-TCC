@@ -2528,7 +2528,7 @@ html {
   display: none;
 }
 
-/* Identidade visual da versão acadêmica: foco, clareza e poucos caminhos. */
+/* Identidade visual: foco, clareza e poucos caminhos. */
 body {
   background: var(--bg-body-start);
   color: var(--text-dark);

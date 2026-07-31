@@ -13,7 +13,7 @@ interface EstabelecimentoCardProps {
 
 /**
  * Card reutilizável para exibir informações de um estabelecimento.
- * Mostra logotipo (ou inicial como placeholder), nome, avaliação e descrição.
+ * Mostra logotipo (ou inicial como placeholder), nome e descrição.
  */
 export function EstabelecimentoCard({
   estabelecimento,

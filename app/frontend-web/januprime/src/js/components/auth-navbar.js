@@ -1,4 +1,4 @@
-// Elementos compartilhados das telas de autenticação da versão acadêmica.
+// Elementos compartilhados das telas de autenticação.
 export function getAuthNavbar() {
   return `
     <nav class="navbar navbar-dark auth-navbar">
@@ -17,7 +17,7 @@ export function getAuthFooter() {
     <footer class="auth-footer py-4">
       <div class="container text-center">
         <p class="text-muted small mb-1">JanuPoints — programa de fidelização local</p>
-        <p class="text-muted small mb-0">Protótipo acadêmico desenvolvido para o TCC.</p>
+        <p class="text-muted small mb-0">Programa de fidelização local.</p>
       </div>
     </footer>
   `;

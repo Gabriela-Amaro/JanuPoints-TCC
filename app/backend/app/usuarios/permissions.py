@@ -1,6 +1,6 @@
 # core/permissions.py
 from rest_framework.permissions import BasePermission
-from .models import Usuario, Cliente, Administrador
+from .models import Usuario
 
 
 class IsCliente(BasePermission):
@@ -32,7 +32,7 @@ class IsSuperUserAdministrador(BasePermission):
 
 
 class CanRegisterAdministrador(BasePermission):
-    message = "Você não tem permissão para cadastrar novos funcionários."
+    message = "Você não tem permissão para cadastrar novos administradores."
 
     def has_permission(self, request, view):
         if not (request.user and request.user.is_authenticated):
@@ -64,7 +64,7 @@ class IsClienteOwner(BasePermission):
 
 
 class IsAdministradorOwnerOrSameEstablishmentSuperUser(BasePermission):
-    message = "Você não tem permissão para acessar os dados deste funcionário."
+    message = "Você não tem permissão para acessar os dados deste administrador."
 
     def has_object_permission(self, request, view, obj):
         is_admin_and_owner = (

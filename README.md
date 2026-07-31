@@ -1,141 +1,201 @@
-# Janu Prime
-[Diagrama Entidade Relacionamento](/docs/diagram_er.md) | [Diagrama De Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md) | [Endpoints](/docs/endpoints.md)
+# JanuPoints
+[Diagrama Entidade-Relacionamento](/docs/diagram_er.md) | [Diagrama de Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md) | [Endpoints](/docs/endpoints.md) | [Execução](/app/execucao/exec.md)
 
 ---
 
-**1. Visão Geral**
+## 1. Visão geral
 
-Janu Prime é uma plataforma digital que visa a fidelização de clientes através de um programa de pontos gerado a partir do consumo em estabelecimentos parceiros de Januária-MG. Os pontos acumulados pelos clientes podem ser convertidos em produtos, serviços ou descontos, incentivando o consumo local e promovendo o fortalecimento da economia regional.
+JanuPoints é uma plataforma de fidelização baseada em pontos. O cliente consulta estabelecimentos parceiros, envia notas fiscais para acumular pontos e utiliza o saldo para resgatar recompensas.
 
-**Objetivo principal:**
-Impulsionar a economia local por meio de uma plataforma colaborativa de marketing e fidelização que conecta clientes a comércios locais, recompensando o consumo com benefícios.
+A plataforma possui dois públicos principais:
 
-**Público-alvo:**
+- **Cliente:** utiliza o aplicativo mobile para consultar parceiros, acompanhar o saldo, enviar notas fiscais, resgatar recompensas e acompanhar suas operações.
+- **Administrador do estabelecimento:** utiliza o painel web para analisar solicitações, administrar recompensas e atualizar os dados do estabelecimento.
 
-- Estabelecimentos comerciais de Januária e região.
-- Consumidores da cidade que desejam obter vantagens ao consumir localmente.
+O ciclo principal da aplicação é:
 
-**Problema que resolve:**
-
-- Baixa fidelização de clientes.
-- Baixa visibilidade e integração dos comércios locais.
-- Dificuldade de pequenos comércios em competir com grandes redes e e-commerce.
-
----
-
-**2. Componentes Principais e Tecnologias Utilizadas**
-
-- **Frontend Mobile:** React Native (aplicativo mobile multiplataforma)
-
-- **Frontend Web:** HTML, CSS, JavaScript e Bootstrap (painel administrativo para lojistas)
-- **Backend:** Django + Django REST Framework
-- **Banco de Dados:** PostgreSQL
-- **Hospedagem:** AWS (camadas gratuitas)
-- **Servidor Web:** Nginx
-- **Servidor de aplicação:** Gunicorn
-- **Autenticação:** JWT
-- **APIs externas:** Envio de e-mails
-
-**Justificativa das escolhas:**
-
-- Stack madura, bem documentada e com suporte a escalabilidade.
-- Django facilita a manutenção e implementação rápida com boa segurança.
-- React Native permite entrega rápida de apps para Android/iOS.
-
----
-
-**3. Diagrama de Componentes (Arquitetura Geral)**
-
-```mermaid
-  graph TD
-    subgraph Frontend
-        AppMobile[Aplicativo Mobile: React Native]
-        PainelWeb[Painel Web: Bootstrap]
-    end
-
-    subgraph Backend
-        Nginx
-        Gunicorn
-        DjangoApp[Django + DRF]
-        PostgreSQL[PostgreSQL]
-        S3[S3: arquivos estáticos]
-    end
-
-    subgraph External
-        EmailAPI[Serviço de E-mail]
-    end
-
-    AppMobile -->|HTTPS| Nginx
-    PainelWeb -->|HTTPS| Nginx
-    Nginx --> Gunicorn
-    Gunicorn --> DjangoApp
-    DjangoApp --> PostgreSQL
-    DjangoApp --> S3
-    DjangoApp --> EmailAPI
+```text
+Cliente consulta um estabelecimento
+  -> envia uma nota fiscal
+  -> administrador analisa a solicitação
+  -> pontos são creditados
+  -> cliente escolhe uma recompensa
+  -> pontos são debitados
+  -> administrador acompanha o resgate
 ```
 
----
+### Objetivos
 
-**4. Estrutura do Projeto (Planejada)**
-
-```
-app/
-├── core/            # App para lógicas centrais, modelos base, etc.
-├── usuarios/        # Gestão de Clientes, Administradores, autenticação.
-├── estabelecimentos/# Cadastro e gestão de estabelecimentos e seus dados.
-├── produtos/        # Catálogo de produtos/recompensas.
-├── transacoes/      # Lógica para Tickets de crédito e débito, extratos.
-├── avaliacoes/      # Gestão de avaliações da plataforma e dos estabelecimentos.
-├── anuncios/        # Gestão de banners promocionais e anúncios.
-├── logs/            # Logs e auditoria.
-├── config/          # Configurações globais da plataforma.
-```
+- Incentivar o consumo em estabelecimentos parceiros.
+- Centralizar o controle de pontos e recompensas.
+- Permitir análise de notas fiscais pelo estabelecimento.
+- Oferecer acompanhamento dos pedidos de acúmulo e resgate.
+- Manter o painel do estabelecimento atualizado por eventos SSE.
 
 ---
 
-**5. Casos de Uso (Planejados)**
+## 2. Arquitetura
 
-- UC01 - Cadastro de Cliente
-- UC02 - Acúmulo de Pontos por Nota Fiscal
-- UC03 - Resgate de Pontos por Produtos
-- UC04 - Cadastro de Estabelecimento (Admin)
-- UC05 - Gerenciamento de Produtos (Estab.)
-- UC06 - Aprovação de Tickets (Funcionário)
-- UC07 - Avaliar Estabelecimento/Plataforma
-- UC08 - Visualização de Saldo e Extrato de Pontos
-- UC09 - Login e Recuperação de Senha
-- UC10 - Cadastro e Gestão de Anúncios
-- UC11 - Consulta de Estabelecimentos
-- UC12 - Visualizar Métricas da Plataforma (Admin)
-- UC13 - Auditoria e Logs (Admin)
-- UC14 - Gerenciar Funcionários
-- UC15 - Gerenciar Perfil do Estabelecimento
+O projeto é organizado em três aplicações:
+
+```text
+JanuPoints-TCC/
+├── app/
+│   ├── backend/          # API Django e banco PostgreSQL
+│   ├── frontend-mobile/  # Aplicativo Expo/React Native
+│   ├── frontend-web/     # Painel web Vite/Bootstrap
+│   └── execucao/         # Instruções de execução
+├── docs/                 # Documentação técnica
+└── README.md
+```
+
+### Componentes
 
 ```mermaid
 graph TD
-    subgraph "Atores"
-        Cliente
-        Funcionario
-        AdminEstabelecimento["Admin do Estabelecimento"]
-        AdminPlataforma["Admin da Plataforma"]
-    end
-
-    AdminPlataforma --> UC04["UC04: Cadastrar/Gerenciar Empresas"]
-    AdminPlataforma --> UC12["UC12: Visualizar Métricas da Plataforma"]
-    AdminPlataforma --> UC13["UC13: Auditoria Geral"]
-
-    AdminEstabelecimento --> UC14["UC14: Gerenciar Funcionários"]
-    AdminEstabelecimento --> UC15["UC15: Gerenciar Perfil do Estabelecimento"]
-
-    Funcionario --> UC10["UC10: Gerenciar Anúncios"]
-    Funcionario --> UC05["UC05: Gerenciar Produtos"]
-    Funcionario --> UC06["UC06: Aprovar/Recusar Tickets"]
-
-    Cliente --> UC01["UC01: Cadastro e Gestão de Conta"]
-    Cliente --> UC02["UC02: Enviar Nota Fiscal (Crédito)"]
-    Cliente --> UC03["UC03: Resgatar Produto (Débito)"]
-    Cliente --> UC08["UC08: Ver Saldo e Extrato"]
-    Cliente --> UC07["UC07: Avaliar Estabelecimento/Plataforma"]
-    Cliente --> UC11["UC11: Consultar Estabelecimentos"]
-    Cliente --> UC09["UC09: Login e Recuperação de Senha"]
+    Cliente[Cliente] --> Mobile[Aplicativo mobile]
+    Administrador[Administrador do estabelecimento] --> Web[Painel web]
+    Mobile --> API[API Django REST]
+    Web --> API
+    API --> Banco[(PostgreSQL)]
+    API --> Media[Arquivos de mídia]
+    Web --> SSE[Stream SSE de tickets]
+    SSE --> Web
 ```
+
+### Tecnologias
+
+- **Backend:** Python, Django, Django REST Framework.
+- **Autenticação:** JWT com refresh token e blacklist de tokens.
+- **Banco de dados:** PostgreSQL.
+- **Aplicativo mobile:** Expo, React Native, Expo Router e TypeScript.
+- **Painel web:** Vite, JavaScript ES Modules, HTML, CSS e Bootstrap.
+- **Atualização da fila:** Server-Sent Events (SSE).
+- **Arquivos:** armazenamento local de mídia durante a execução atual.
+- **Orquestração local:** Docker Compose.
+
+---
+
+## 3. Estrutura do backend
+
+O backend está em `app/backend/app` e possui os seguintes módulos ativos:
+
+```text
+app/backend/app/
+├── config/           # settings, URLs, ASGI e WSGI
+├── core/             # permissões, logging e comandos administrativos
+├── usuarios/         # usuário, cliente, administrador e autenticação
+├── estabelecimentos/ # estabelecimentos parceiros
+├── produtos/         # recompensas do catálogo
+├── tickets/          # acúmulos, resgates e stream SSE
+└── manage.py
+```
+
+### Responsabilidades dos apps
+
+- `usuarios`: modelo de usuário customizado com login por email, perfis de cliente e administrador e alteração de senha.
+- `estabelecimentos`: consulta e atualização dos dados dos estabelecimentos.
+- `produtos`: criação, consulta, atualização e exclusão de recompensas.
+- `tickets`: operações de crédito e débito, aprovações, recusas, cancelamentos e atualização da fila.
+- `core`: permissões compartilhadas, filtro de contexto de logging e comando para recalcular pontos.
+
+---
+
+## 4. Funcionalidades
+
+### Aplicativo mobile
+
+- Cadastro e login de clientes.
+- Saldo de pontos.
+- Consulta e busca de estabelecimentos.
+- Consulta de recompensas.
+- Captura de imagem da nota fiscal.
+- Envio e acompanhamento de acúmulos.
+- Solicitação e acompanhamento de resgates.
+- Histórico de tickets de crédito e débito.
+- Atualização dos dados pessoais.
+- Alteração de senha e saída da conta.
+
+### Painel web
+
+- Login de administradores de estabelecimentos.
+- Dashboard com solicitações abertas.
+- Aprovação e recusa de tickets de crédito e débito.
+- Atualização automática da fila por SSE.
+- Cadastro, edição e exclusão de recompensas.
+- Atualização de nome, endereço, telefone, descrição e logotipo do estabelecimento.
+
+### Perfis de acesso
+
+- **Cliente:** consulta parceiros e recompensas, gerencia os próprios dados, acumula pontos, solicita resgates e acompanha seus tickets.
+- **Administrador do estabelecimento:** acessa o estabelecimento associado, administra recompensas e analisa solicitações relacionadas à empresa.
+- **Superusuário:** possui acesso administrativo ampliado aos estabelecimentos, produtos e tickets.
+
+### Interface e comunicação
+
+- O aplicativo mobile utiliza Expo Router e navegação por abas.
+- O painel web utiliza Vite, JavaScript modular e Bootstrap.
+- A API utiliza JSON nas operações comuns e `multipart/form-data` para imagens.
+- O painel recebe alterações da fila por Server-Sent Events.
+
+---
+
+## 5. Regras principais
+
+- O cliente acumula pontos após a aprovação de um ticket de crédito.
+- O valor dos pontos de um acúmulo é calculado com base no valor da nota e em `PONTOS_POR_REAL_GASTO`.
+- O cliente só pode enviar notas de valor positivo, com data válida e número não duplicado no estabelecimento.
+- O resgate exige saldo suficiente e produto ativo em estabelecimento ativo.
+- Os pontos do resgate são debitados no momento da criação do ticket.
+- O cancelamento ou a recusa de um resgate devolve os pontos ao cliente.
+- O administrador só acessa tickets e produtos do estabelecimento associado, salvo superusuários da plataforma.
+- O cliente só consulta e altera os próprios dados e tickets.
+
+---
+
+## 6. Execução rápida
+
+### Backend
+
+A partir de `app/backend`, configure o arquivo `.env` e execute:
+
+```bash
+docker compose build
+docker compose up -d
+docker compose exec app python manage.py migrate
+```
+
+A API ficará disponível em `http://localhost:8000`.
+
+### Painel web
+
+A partir de `app/frontend-web`:
+
+```bash
+npm install
+npm run dev
+```
+
+O painel utiliza a API configurada em `app/frontend-web/januprime/src/js/config/app.js`.
+
+### Aplicativo mobile
+
+A partir de `app/frontend-mobile`:
+
+```bash
+npm install
+npm run start
+```
+
+Consulte [Execução](/app/execucao/exec.md) para os comandos completos.
+
+---
+
+## 7. Documentação técnica
+
+- [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md)
+- [Endpoints da API](/docs/endpoints.md)
+- [Fluxo de Requisições](/docs/fluxo_requisicao.md)
+- [Diagrama Entidade-Relacionamento](/docs/diagram_er.md)
+- [Diagrama de Classes](/docs/diagrama_classes.md)
+- [Instruções de Execução](/app/execucao/exec.md)

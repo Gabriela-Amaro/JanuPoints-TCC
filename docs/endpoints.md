@@ -1,719 +1,565 @@
-[Visão Geral](/README.md) | [Diagrama Entidade Relacionamento](/docs/diagram_er.md) | [Diagrama De Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md)
+[Visão Geral](/README.md) | [Diagrama Entidade-Relacionamento](/docs/diagram_er.md) | [Diagrama de Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md)
 
 ---
 
-### URLs (Endpoints Planejados)
+# Endpoints da API
 
-##### Convenções Utilizadas
+## 1. Convenções
 
-- `{id}`: Representa um identificador único (ex: ID de uma empresa, cliente, etc.).
-- `{empresaId}`: Identificador específico de uma empresa.
+A API é servida pelo backend Django e utiliza o prefixo `/api/` para as rotas de aplicação.
 
-##### Autorização
+```text
+http://localhost:8000/api/
+```
 
-Todas as requisições autenticadas devem conter o **Bearer Token (JWT)** no cabeçalho `Authorization`.
+As rotas protegidas utilizam:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+As respostas comuns usam JSON. O envio de nota fiscal e o upload de imagens utilizam `multipart/form-data`.
+
+### Formatos de status
+
+#### Ticket de crédito
+
+- `ABERTO`
+- `CONCLUIDO`
+- `CANCELADO`
+- `RECUSADO`
+
+#### Ticket de débito
+
+- `ABERTO`
+- `APROVADO`
+- `CONCLUIDO`
+- `CANCELADO`
+- `RECUSADO`
 
 ---
 
-#### 1. Autenticação e Gestão de Contas de Cliente
+## 2. Autenticação
 
-Endpoints para que os clientes possam se registrar, fazer login e gerenciar suas contas.
+### `POST /api/auth/token/`
 
-##### `POST /auth/login`
+Autentica um usuário e retorna tokens JWT.
 
-**Descrição**: Autentica um usuário (cliente, funcionário ou administrador) e retorna um token de acesso (JWT).
-**Autorização**: Pública.
+**Autorização:** pública.
 
-###### Corpo da Requisição
-
-```json
-{
-  "email": "usuario@exemplo.com",
-  "senha": "senha_do_usuario"
-}
-```
-
-###### Resposta de Sucesso (200 OK)
+#### Corpo
 
 ```json
 {
-  "token": "seu_token_jwt_aqui",
-  "usuario": {
-    "id": 1,
-    "nome": "Nome do Usuário",
-    "email": "usuario@exemplo.com",
-    "tipo": "cliente"
-  }
+  "email": "cliente@exemplo.com",
+  "password": "senha-segura"
 }
 ```
 
-###### Respostas de Erro:
+#### Resposta
 
-- `400 Bad Request`: Dados inválidos
-- `401 Unauthorized`: Credenciais incorretas
+```json
+{
+  "refresh": "<refresh_token>",
+  "access": "<access_token>"
+}
+```
+
+O login utiliza email como identificador do usuário.
+
+### `POST /api/auth/token/refresh/`
+
+Gera um novo access token usando o refresh token.
+
+**Autorização:** pública, com refresh token válido.
+
+#### Corpo
+
+```json
+{
+  "refresh": "<refresh_token>"
+}
+```
+
+### `POST /api/auth/logout/`
+
+Adiciona o refresh token à blacklist.
+
+**Autorização:** token JWT e refresh token válido.
+
+#### Corpo
+
+```json
+{
+  "refresh": "<refresh_token>"
+}
+```
 
 ---
 
-##### `POST /clientes/cadastro`
+## 3. Usuário autenticado
 
-**Descrição**: Cadastra um novo cliente na plataforma.
-**Autorização**: Pública.
+### `GET /api/me/`
 
-###### Corpo da Requisição
+Retorna os dados do usuário autenticado.
 
-```json
-{
-  "nome": "Novo Cliente",
-  "cpf": "123.456.789-00",
-  "email": "novo.cliente@exemplo.com",
-  "telefone": "38999998888",
-  "senha": "senha_forte_123"
-}
-```
+**Autorização:** usuário autenticado.
 
-###### Resposta de Sucesso (201 Created)
+#### Resposta para cliente
 
 ```json
 {
   "id": 1,
-  "nome": "Novo Cliente",
-  "email": "novo.cliente@exemplo.com",
-  "pontos": 0
-}
-```
-
-###### Respostas de Erro:
-
-- `400 Bad Request`: Dados faltando ou inválidos
-- `409 Conflict`: Email ou CPF já cadastrado
-
----
-
-##### `GET /clientes/meu-perfil`
-
-**Descrição**: Retorna os dados do cliente autenticado.
-**Autorização**: Cliente Autenticado.
-
-###### Resposta de Sucesso (200 OK)
-
-```json
-{
-  "id": 1,
+  "email": "cliente@exemplo.com",
+  "tipo_usuario": "CLIENTE",
+  "is_active": true,
   "nome": "Nome do Cliente",
   "cpf": "123.456.789-00",
-  "email": "cliente@exemplo.com",
-  "telefone": "38999998888",
-  "pontos": 1500
+  "telefone": "5538999998888",
+  "pontos": 120
 }
 ```
 
-###### Respostas de Erro:
-
-- `401 Unauthorized`
-
----
-
-##### `PUT /clientes/meu-perfil`
-
-**Descrição**: Atualiza os dados do cliente autenticado.
-**Autorização**: Cliente Autenticado.
-
-###### Corpo da Requisição
+#### Resposta para administrador
 
 ```json
 {
-  "nome": "Nome do Cliente Atualizado",
-  "telefone": "38988887777",
-  "senha_antiga": "senha_atual_123",
-  "nova_senha": "nova_senha_forte_456"
-}
-```
-
-**Resposta de Sucesso (200 OK):** Retorna o perfil atualizado.
-
-###### Respostas de Erro:
-
-- `400 Bad Request`
-- `401 Unauthorized` (senha antiga incorreta)
-
----
-
-##### `DELETE /clientes/meu-perfil`
-
-**Descrição**: Exclui a conta do cliente autenticado.
-**Autorização**: Cliente Autenticado.
-
-###### Resposta de Sucesso:
-
-- `204 No Content`
-
-###### Respostas de Erro:
-
-- `401 Unauthorized`
-
----
-
-#### 2. Administrador da Plataforma
-
-Endpoints exclusivos para o administrador geral do sistema Janu Prime.
-
-##### `POST /admin/empresas`
-
-**Descrição**: Cadastra uma nova empresa e seu superusuário associado. A empresa inicia como "desativada".
-**Autorização**: Admin da Plataforma.
-
-###### Corpo da Requisição
-
-```json
-{
-  "empresa": {
-    "nome": "Nova Empresa Parceira",
-    "cnpj": "12.345.678/0001-99"
-  },
-  "super_usuario": {
-    "nome": "Admin da Empresa",
-    "email": "admin@novaempresa.com",
-    "cpf": "987.654.321-00"
+  "id": 2,
+  "email": "admin@empresa.com",
+  "tipo_usuario": "ADMINISTRADOR",
+  "is_active": true,
+  "nome": "Administrador",
+  "cpf": "987.654.321-00",
+  "super_user": true,
+  "estabelecimento": {
+    "id": 4,
+    "nome": "Estabelecimento Parceiro"
   }
 }
 ```
 
-###### Resposta de Sucesso (201 Created):
+### `PUT /api/usuarios/change-password/`
 
-- Retorna os dados da empresa e do superusuário criado com uma senha temporária.
+Altera a senha do usuário autenticado.
 
-###### Respostas de Erro:
+**Autorização:** usuário autenticado.
 
-- `400 Bad Request`
-- `403 Forbidden`
-- `409 Conflict`: CNPJ, email ou CPF já existem
+O corpo é validado por `ChangePasswordSerializer` e deve conter os campos de senha definidos pelo backend, incluindo a senha atual e a nova senha.
 
----
-
-##### `GET /admin/empresas`
-
-**Descrição**: Lista todas as empresas cadastradas na plataforma.
-**Autorização**: Admin da Plataforma.
-
-**Query String (opcional)**:
-
-- `?status=ativo`
-- `?status=inativo`
-- `?page=1&limit=20`
-
-###### Resposta de Sucesso (200 OK)
+#### Resposta
 
 ```json
 {
-  "metadata": { "total": 50, "page": 1, "limit": 20 },
-  "empresas": [
-    {
-      "id": 1,
-      "nome": "Empresa A",
-      "cnpj": "11.111.111/0001-11",
-      "ativo": true
-    }
-  ]
+  "detail": "Senha alterada com sucesso."
 }
 ```
 
-###### Respostas de Erro:
-
-- `403 Forbidden`
-
 ---
 
-##### `PATCH /admin/empresas/{id}/status`
+## 4. Clientes
 
-**Descrição**: Ativa ou desativa uma empresa e seus superusuários.
-**Autorização**: Admin da Plataforma.
+### `POST /api/clientes/cadastro/`
 
-###### Corpo da Requisição
+Cria um cliente e seu usuário de autenticação.
+
+**Autorização:** pública.
+
+#### Corpo
 
 ```json
 {
+  "email": "novo.cliente@exemplo.com",
+  "password": "senha-segura",
+  "password2": "senha-segura",
+  "nome": "Novo Cliente",
+  "cpf": "123.456.789-00",
+  "telefone": "+5538999998888"
+}
+```
+
+#### Resposta `201 Created`
+
+Retorna os dados do cliente criado, com `cpf` e `pontos` como campos somente leitura.
+
+### `GET /api/clientes/{id}/`
+
+Retorna os dados de um cliente.
+
+**Autorização:** cliente autenticado, apenas o proprietário do perfil.
+
+### `PUT /api/clientes/{id}/`
+
+Atualiza os dados editáveis do cliente.
+
+**Autorização:** cliente autenticado, apenas o proprietário do perfil.
+
+### `PATCH /api/clientes/{id}/`
+
+Atualiza parcialmente os dados do cliente.
+
+**Autorização:** cliente autenticado, apenas o proprietário do perfil.
+
+#### Exemplo
+
+```json
+{
+  "nome": "Nome atualizado",
+  "email": "atualizado@exemplo.com",
+  "telefone": "+5538888887777"
+}
+```
+
+### `DELETE /api/clientes/{id}/`
+
+Exclui o usuário e o perfil do cliente.
+
+**Autorização:** cliente autenticado, apenas o proprietário do perfil.
+
+**Resposta:** `204 No Content`.
+
+---
+
+## 5. Estabelecimentos
+
+Os endpoints são registrados por `DefaultRouter`.
+
+### `GET /api/estabelecimentos/`
+
+Lista estabelecimentos disponíveis para o usuário autenticado.
+
+**Autorização:** usuário autenticado.
+
+Comportamento:
+
+- superusuário: todos os estabelecimentos;
+- administrador: estabelecimento associado;
+- cliente: estabelecimentos ativos.
+
+#### Busca por nome
+
+```text
+GET /api/estabelecimentos/?search=pizzaria
+```
+
+### `GET /api/estabelecimentos/{id}/`
+
+Retorna os detalhes de um estabelecimento.
+
+**Autorização:** usuário autenticado.
+
+#### Resposta
+
+```json
+{
+  "id": 1,
+  "nome": "Estabelecimento Parceiro",
+  "endereco": "Rua Principal, 100",
+  "telefone": "+553833334444",
+  "descricao": "Descrição do parceiro",
+  "logotipo": "/media/logotipos/logo.jpg",
+  "cnpj": "12.345.678/0001-99",
+  "horario_funcionamento": {
+    "segunda": "08:00-18:00"
+  },
+  "ativo": true,
+  "created_at": "2026-01-01T12:00:00Z",
+  "updated_at": "2026-01-01T12:00:00Z"
+}
+```
+
+### `PUT /api/estabelecimentos/{id}/`
+
+Atualiza um estabelecimento.
+
+**Autorização:** superusuário ou administrador autorizado do estabelecimento.
+
+### `PATCH /api/estabelecimentos/{id}/`
+
+Atualiza parcialmente um estabelecimento.
+
+**Autorização:** superusuário ou administrador autorizado do estabelecimento.
+
+### `DELETE /api/estabelecimentos/{id}/`
+
+Exclui um estabelecimento.
+
+**Autorização:** superusuário ou administrador autorizado do estabelecimento.
+
+O cadastro de novos estabelecimentos não é exposto por este viewset.
+
+---
+
+## 6. Produtos e recompensas
+
+### `GET /api/produtos/`
+
+Lista produtos conforme o perfil autenticado.
+
+**Autorização:** usuário autenticado.
+
+Comportamento:
+
+- superusuário: todos os produtos;
+- administrador: produtos do estabelecimento associado;
+- cliente: produtos ativos de estabelecimentos ativos.
+
+#### Busca por nome
+
+```text
+GET /api/produtos/?search=cafe
+```
+
+#### Filtro por estabelecimento
+
+```text
+GET /api/produtos/?estabelecimento=1
+```
+
+### `POST /api/produtos/`
+
+Cria uma recompensa.
+
+**Autorização:** superusuário ou administrador autorizado.
+
+#### Corpo JSON
+
+```json
+{
+  "nome": "Café especial",
+  "descricao": "Café coado",
+  "preco": "10.00",
   "ativo": true
 }
 ```
 
-###### Resposta de Sucesso (200 OK):
+#### Upload de imagem
 
-- Retorna o objeto da empresa com o novo status.
+Para enviar uma imagem, use `multipart/form-data` com os campos:
 
-###### Respostas de Erro:
+```text
+nome
+descricao
+preco
+ativo
+imagem
+```
 
-- `400 Bad Request`
-- `403 Forbidden`
-- `404 Not Found`
+O campo `pontos` é calculado pelo modelo e não deve ser enviado como valor de negócio.
+
+### `GET /api/produtos/{id}/`
+
+Retorna uma recompensa.
+
+**Autorização:** usuário autenticado.
+
+### `PUT /api/produtos/{id}/`
+
+Atualiza uma recompensa.
+
+**Autorização:** superusuário ou administrador autorizado.
+
+### `PATCH /api/produtos/{id}/`
+
+Atualiza parcialmente uma recompensa.
+
+**Autorização:** superusuário ou administrador autorizado.
+
+### `DELETE /api/produtos/{id}/`
+
+Exclui uma recompensa.
+
+**Autorização:** superusuário ou administrador autorizado.
+
+### Cálculo de pontos
+
+Ao salvar um produto, o backend calcula:
+
+```text
+pontos = int(preco * 100 / PORCENTAGEM_CASHBACK)
+```
+
+O valor padrão de `PORCENTAGEM_CASHBACK` é `5.0`.
 
 ---
 
-##### `GET /admin/metricas`
+## 7. Tickets de crédito
 
-**Descrição**: Retorna métricas gerais da plataforma.
-**Autorização**: Admin da Plataforma.
+### `GET /api/tickets/credito/`
 
-###### Resposta de Sucesso (200 OK)
+Lista tickets de crédito conforme o usuário.
+
+**Autorização:** usuário autenticado.
+
+- cliente: próprios tickets;
+- administrador: tickets do estabelecimento;
+- superusuário: todos os tickets.
+
+### `POST /api/tickets/credito/`
+
+Cria um ticket de acúmulo.
+
+**Autorização:** cliente autenticado.
+
+**Content-Type:** `multipart/form-data`.
+
+#### Campos
+
+```text
+estabelecimento: ID do estabelecimento
+imagem: imagem da nota fiscal
+preco: valor da nota
+data_nota: data da nota
+numero_nota: número da nota
+```
+
+Validações:
+
+- `preco` deve ser maior que zero;
+- `data_nota` não pode estar no futuro;
+- a combinação de estabelecimento e número da nota não pode estar duplicada;
+- o estabelecimento precisa estar ativo.
+
+O ticket é criado com status `ABERTO` e os pontos são calculados com `PONTOS_POR_REAL_GASTO`.
+
+### `GET /api/tickets/credito/{id}/`
+
+Retorna os detalhes de um ticket de crédito.
+
+**Autorização:** proprietário, administrador do estabelecimento ou superusuário.
+
+### `POST /api/tickets/credito/{id}/cancelar/`
+
+Cancela um ticket de crédito aberto.
+
+**Autorização:** proprietário do ticket.
+
+### `POST /api/tickets/credito/{id}/aprovar/`
+
+Aprova o ticket e credita os pontos ao cliente.
+
+**Autorização:** administrador do estabelecimento ou superusuário.
+
+Efeitos:
+
+- status passa para `CONCLUIDO`;
+- pontos são adicionados ao cliente;
+- atualização ocorre em transação atômica.
+
+### `POST /api/tickets/credito/{id}/recusar/`
+
+Recusa um ticket aberto.
+
+**Autorização:** administrador do estabelecimento ou superusuário.
+
+#### Corpo opcional
 
 ```json
 {
-  "total_usuarios": 5230,
-  "total_empresas_ativas": 48,
-  "total_transacoes_mes": 12450,
-  "total_pontos_acumulados": 1500000
+  "motivo": "Dados inconsistentes com a nota fiscal."
 }
 ```
 
-###### Respostas de Erro:
-
-- `403 Forbidden`
-
 ---
 
-##### `GET /admin/logs`
+## 8. Tickets de débito
 
-**Descrição**: Retorna logs de auditoria da plataforma.
-**Autorização**: Admin da Plataforma.
+### `GET /api/tickets/debito/`
 
-**Query String (opcional)**:
+Lista tickets de débito conforme o usuário.
 
-- `?tipo=operacional`
-- `?data_inicio=AAAA-MM-DD`
+**Autorização:** usuário autenticado.
 
-###### Resposta de Sucesso (200 OK):
+- cliente: próprios tickets;
+- administrador: tickets de produtos do estabelecimento;
+- superusuário: todos os tickets.
 
-- Lista de logs.
+### `POST /api/tickets/debito/`
 
-###### Respostas de Erro:
+Cria uma solicitação de resgate.
 
-- `403 Forbidden`
+**Autorização:** cliente autenticado.
 
----
-
-Claro! Aqui está a continuação da documentação técnica formatada em **Markdown**, seguindo o mesmo padrão:
-
----
-
-#### 3. Estabelecimentos (Empresas)
-
-Endpoints para consulta de informações públicas e gerenciamento do perfil pela própria empresa.
-
-##### `GET /estabelecimentos`
-
-**Descrição**: Lista todos os estabelecimentos parceiros ativos para os clientes.
-**Autorização**: Pública.
-
-**Query String (opcional)**:
-
-- `?busca=pizzaria`
-- `?ordenar_por=nome_asc`
-- `?page=1&limit=10`
-
-###### Resposta de Sucesso (200 OK):
-
-- Lista paginada de estabelecimentos.
-
----
-
-##### `GET /estabelecimentos/{id}`
-
-**Descrição**: Busca os detalhes de um estabelecimento específico.
-**Autorização**: Pública.
-
-###### Resposta de Sucesso (200 OK)
+#### Corpo
 
 ```json
 {
-  "id": 1,
-  "nome": "Pizzaria Sabor Local",
-  "endereco": "Rua Principal, 123",
-  "telefone": "3833334444",
-  "descricao": "A melhor pizza da cidade!",
-  "logotipo": "url_do_logo.jpg",
-  "horario_funcionamento": "Ter-Dom: 18h-23h"
+  "produto": 10
 }
 ```
 
-###### Respostas de Erro:
+Validações:
 
-- `404 Not Found`
+- produto ativo;
+- estabelecimento ativo;
+- saldo suficiente.
+
+Na criação, os pontos do produto são debitados do cliente e o ticket é criado com status `ABERTO`.
+
+### `GET /api/tickets/debito/{id}/`
+
+Retorna os detalhes de um ticket de débito.
+
+**Autorização:** proprietário, administrador do estabelecimento ou superusuário.
+
+### `POST /api/tickets/debito/{id}/cancelar/`
+
+Cancela um ticket aberto e estorna os pontos.
+
+**Autorização:** proprietário do ticket.
+
+### `POST /api/tickets/debito/{id}/aprovar/`
+
+Aprova um ticket aberto.
+
+**Autorização:** administrador do estabelecimento ou superusuário.
+
+O status passa para `APROVADO`.
+
+### `POST /api/tickets/debito/{id}/recusar/`
+
+Recusa um ticket aberto e estorna os pontos.
+
+**Autorização:** administrador do estabelecimento ou superusuário.
+
+### `POST /api/tickets/debito/{id}/concluir/`
+
+Conclui um ticket aprovado.
+
+**Autorização:** cliente proprietário do ticket.
+
+O ticket só pode ser concluído quando estiver com status `APROVADO`.
 
 ---
 
-##### `GET /empresas/meu-perfil`
+## 9. Stream de tickets
 
-**Descrição**: Retorna os dados completos do estabelecimento do administrador ou funcionário autenticado.
-**Autorização**: Admin da Empresa / Funcionário.
+### `GET /api/tickets/stream/?token={access_token}`
 
-###### Resposta de Sucesso (200 OK):
+Abre um stream Server-Sent Events para acompanhar alterações na fila do estabelecimento.
 
-- Similar ao `GET /estabelecimentos/{id}`, mas com mais campos (CNPJ, etc.).
+O token é enviado como parâmetro de consulta porque o `EventSource` utilizado pelo navegador não permite configurar o cabeçalho Authorization diretamente.
 
-###### Respostas de Erro:
+#### Eventos
 
-- `401 Unauthorized`
-- `403 Forbidden`
-
----
-
-##### `PUT /empresas/meu-perfil`
-
-**Descrição**: Atualiza o perfil do estabelecimento.
-**Autorização**: Admin da Empresa.
-
-###### Corpo da Requisição
-
-```json
-{
-  "nome": "Novo Nome da Empresa",
-  "endereco": "Novo Endereço",
-  "descricao": "Nova descrição",
-  "logotipo": "nova_url_logo.jpg"
-}
+```text
+event: tickets_changed
+data: {"total": 2}
 ```
 
-###### Resposta de Sucesso (200 OK):
+Quando não há alteração, o servidor envia heartbeat:
 
-- Retorna o perfil atualizado.
-
-###### Respostas de Erro:
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `403 Forbidden`
-
----
-
-#### 4. Gestão Interna da Empresa (Admins e Funcionários)
-
-Endpoints para o gerenciamento de funcionários, produtos, anúncios e transações.
-
-##### `POST /empresas/funcionarios`
-
-**Descrição**: Cadastra um novo funcionário vinculado ao estabelecimento.
-**Autorização**: Admin da Empresa.
-
-###### Corpo da Requisição
-
-```json
-{
-  "nome": "Novo Funcionário",
-  "email": "funcionario@empresa.com",
-  "cpf": "111.222.333-44"
-}
+```text
+: heartbeat
 ```
 
-###### Resposta de Sucesso (201 Created):
-
-- Retorna os dados do funcionário criado com uma senha temporária.
-
-###### Respostas de Erro:
-
-- `400 Bad Request`
-- `403 Forbidden`
-- `409 Conflict`
+O stream considera tickets abertos de crédito e débito do estabelecimento associado ao administrador.
 
 ---
 
-##### `POST /empresas/catalogo`
+## 10. Administração Django
 
-**Descrição**: Cadastra um novo produto/recompensa no catálogo da empresa.
-**Autorização**: Funcionário / Admin da Empresa.
+### `GET /admin/`
 
-###### Corpo da Requisição
+Acessa o Django Admin quando o usuário possui credenciais administrativas.
 
-```json
-{
-  "nome": "Pizza Grande",
-  "descricao": "Qualquer sabor do cardápio",
-  "imagem": "url_da_imagem.jpg",
-  "pontos": 2000
-}
-```
-
-###### Resposta de Sucesso (201 Created):
-
-- Retorna o produto criado.
-
-###### Respostas de Erro:
-
-- `400 Bad Request`
-- `403 Forbidden`
-
----
-
-##### `PUT /empresas/catalogo/{produtoId}`
-
-**Descrição**: Atualiza um produto do catálogo.
-**Autorização**: Funcionário / Admin da Empresa.
-
-###### Corpo da Requisição
-
-```json
-{
-  "nome": "Pizza Grande Atualizada",
-  "descricao": "Novo sabor",
-  "pontos": 2500
-}
-```
-
-###### Resposta de Sucesso (200 OK):
-
-- Retorna o produto atualizado.
-
-###### Respostas de Erro:
-
-- `400 Bad Request`
-- `403 Forbidden`
-- `404 Not Found`
-
----
-
-##### `DELETE /empresas/catalogo/{produtoId}`
-
-**Descrição**: Remove um produto do catálogo.
-**Autorização**: Funcionário / Admin da Empresa.
-
-###### Resposta de Sucesso:
-
-- `204 No Content`
-
-###### Respostas de Erro:
-
-- `403 Forbidden`
-- `404 Not Found`
-
----
-
-##### `PATCH /tickets/credito/{ticketId}/validar`
-
-**Descrição**: Aprova ou recusa um ticket de crédito (envio de nota fiscal).
-**Autorização**: Funcionário / Admin da Empresa.
-
-###### Corpo da Requisição
-
-```json
-{
-  "status": "aprovado",
-  "observacao": "Nota fiscal ilegível."
-}
-```
-
-###### Resposta de Sucesso (200 OK):
-
-- Retorna o ticket atualizado.
-
-###### Respostas de Erro:
-
-- `400 Bad Request`
-- `403 Forbidden`
-- `404 Not Found`
-
----
-
-##### `PATCH /tickets/debito/{ticketId}/validar`
-
-**Descrição**: Confirma um resgate de pontos (débito) apresentado pelo cliente.
-**Autorização**: Funcionário / Admin da Empresa.
-
-###### Corpo da Requisição
-
-```json
-{
-  "status": "concluido"
-}
-```
-
-###### Resposta de Sucesso (200 OK):
-
-- Retorna o ticket atualizado.
-
-###### Respostas de Erro:
-
-- `400 Bad Request`
-- `403 Forbidden`
-- `404 Not Found`
-
----
-
-Aqui está a continuação da sua documentação de **endpoints** em **Markdown** com formatação consistente com as seções anteriores:
-
----
-
-#### 5. Transações e Pontos
-
-Endpoints para o cliente acumular, resgatar e consultar seus pontos.
-
-##### `POST /tickets/credito`
-
-**Descrição**: Cliente envia dados de consumo para gerar pontos (anexando nota fiscal).
-**Autorização**: Cliente Autenticado.
-
-###### Corpo da Requisição (`multipart/form-data`)
-
-- `estabelecimento_id`: ID do estabelecimento
-- `numero_nota`: Número da nota fiscal
-- `valor_nota`: Valor da nota
-- `data_emissao`: Data da nota
-- `imagem_nota`: Arquivo da nota fiscal (imagem)
-
-###### Resposta de Sucesso (202 Accepted):
-
-- O ticket foi aceito para processamento e está com status `"pendente"`.
-
-###### Respostas de Erro:
-
-- `400 Bad Request`
-- `401 Unauthorized`
-
----
-
-##### `POST /tickets/debito`
-
-**Descrição**: Cliente solicita o resgate de pontos por um produto.
-**Autorização**: Cliente Autenticado.
-
-###### Corpo da Requisição
-
-```json
-{
-  "produto_id": 123
-}
-```
-
-###### Resposta de Sucesso (201 Created)
-
-```json
-{
-  "id": 987,
-  "status": "pendente",
-  "produto": { "nome": "Pizza Grande" },
-  "pontos": 2000,
-  "codigo_resgate": "ABC-123"
-}
-```
-
-###### Respostas de Erro:
-
-- `400 Bad Request`: Pontos insuficientes
-- `401 Unauthorized`
-- `404 Not Found`: Produto não existe
-
----
-
-##### `GET /clientes/extrato`
-
-**Descrição**: Consulta o extrato completo de transações de pontos do cliente.
-**Autorização**: Cliente Autenticado.
-
-**Query String (opcional)**
-
-- `?tipo=credito`
-- `?periodo=ultimos_30_dias`
-- `?estabelecimento_id=1`
-
-###### Resposta de Sucesso (200 OK):
-
-- Lista de transações com data, tipo, valor, status, etc.
-
-###### Respostas de Erro:
-
-- `401 Unauthorized`
-
----
-
-##### `GET /clientes/saldo`
-
-**Descrição**: Retorna o saldo atual de pontos do cliente e avisos de expiração.
-**Autorização**: Cliente Autenticado.
-
-###### Resposta de Sucesso (200 OK)
-
-```json
-{
-  "saldo_total": 1500,
-  "pontos_a_expirar": [
-    {
-      "pontos": 100,
-      "data_expiracao": "2025-08-27"
-    }
-  ]
-}
-```
-
-###### Respostas de Erro:
-
-- `401 Unauthorized`
-
----
-
-#### 6. Catálogo e Avaliações
-
-Endpoints para consulta do catálogo de recompensas e para os clientes avaliarem os serviços.
-
-##### `GET /estabelecimentos/{id}/catalogo`
-
-**Descrição**: Lista os produtos/recompensas de um estabelecimento específico.
-**Autorização**: Pública.
-
-**Query String (opcional)**
-
-- `?filtro_pontos_max=2000`
-- `?busca=pizza`
-
-###### Resposta de Sucesso (200 OK):
-
-- Lista de produtos com nome, imagem, pontos, etc.
-
-###### Respostas de Erro:
-
-- `404 Not Found`
-
----
-
-##### `POST /estabelecimentos/{id}/avaliacoes`
-
-**Descrição**: Cliente avalia um estabelecimento parceiro.
-**Autorização**: Cliente Autenticado.
-
-###### Corpo da Requisição
-
-```json
-{
-  "estrelas": 5,
-  "comentario": "Atendimento excelente!"
-}
-```
-
-###### Resposta de Sucesso (201 Created):
-
-- Retorna a avaliação criada.
-
-###### Respostas de Erro:
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `403 Forbidden`: Cliente não pode avaliar sem ter consumido
-
----
-
-##### `POST /plataforma/avaliacoes`
-
-**Descrição**: Cliente avalia a plataforma Janu Prime.
-**Autorização**: Cliente Autenticado.
-
-###### Corpo da Requisição
-
-```json
-{
-  "estrelas": 5,
-  "comentario": "O aplicativo é muito fácil de usar."
-}
-```
-
-###### Resposta de Sucesso (201 Created)
-
-###### Respostas de Erro:
-
-- `400 Bad Request`
-- `401 Unauthorized`
+A administração é registrada pelo Django e utiliza os modelos ativos do projeto.

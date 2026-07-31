@@ -1,172 +1,110 @@
-[Visão Geral](/README.md) | [Diagrama De Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md) | [Endpoints](/docs/endpoints.md)
+[Visão Geral](/README.md) | [Diagrama de Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md) | [Endpoints](/docs/endpoints.md)
 
 ---
-### Diagrama Entidade - Relacionamento (Planejado)
 
-**Tabelas:**
+### Diagrama Entidade-Relacionamento
 
-- `clientes`
-- `administradores`
-- `estabelecimentos`
-- `produtos`
-- `ticket_credito`
-- `ticket_debito`
-- `avaliacoes_estabelecimento`, `avaliacoes_plataforma`
-- `logs`, `anuncios`, `config`
+As entidades abaixo correspondem aos modelos ativos do backend.
 
 ```mermaid
-    erDiagram
-        adm_plataforma {
-            INT id
-            STRING nome
-            STRING email
-            STRING senha
-            STRING cpf
-            DATETIME created_at
-            DATETIME updated_at
-        }
-        administradores {
-            INT id PK
-            INT estabelecimento_id FK
-            STRING nome
-            STRING email
-            STRING senha
-            STRING cpf
-            BOOLEAN ativo
-            BOOLEAN super_user
-            DATETIME created_at
-            DATETIME updated_at
-        }
-        clientes {
-            INT id PK
-            STRING nome
-            STRING email
-            STRING senha
-            STRING cpf
-            STRING telefone
-            INT pontos
-            DATETIME created_at
-            DATETIME updated_at
-        }
-        avaliacoes_estabelecimento {
-            INT id PK
-            INT cliente_id FK
-            INT estabelecimento_id FK
-            INT estrelas
-            STRING descricao
-            DATETIME created_at
-            DATETIME updated_at
-        }
-        avaliacoes_plataforma {
-            INT id PK
-            INT cliente_id FK
-            INT estrelas
-            STRING descricao
-            DATETIME created_at
-            DATETIME updated_at
-        }
-        estabelecimentos {
-            INT id PK
-            STRING nome
-            STRING endereco
-            STRING telefone
-            STRING descricao
-            IMG logotipo
-            STRING cnpj
-            STRING horario_funcionamento
-            BOOLEAN ativo
-            DATETIME created_at
-            DATETIME updated_at
-        }
-        fotos_espaco {
-            INT id PK
-            INT estabelecimento_id FK
-            IMG fotos_espaco
-            DATETIME created_at
-            DATETIME updated_at
-        }
-        produtos {
-            INT id PK
-            INT estabelecimento_id FK
-            STRING nome
-            STRING descricao
-            IMG imagem
-            DECIMAL preco
-            INT pontos
-            DATETIME created_at
-            DATETIME updated_at
-        }
+erDiagram
+    USUARIO {
+        int id PK
+        string email UK
+        string tipo_usuario
+        boolean is_active
+        boolean is_staff
+        datetime created_at
+        datetime updated_at
+    }
 
-        %% resgate
-        ticket_debito {
-            INT id PK
-            INT cliente_id FK
-            INT produto_id FK
-            UUID codigo
-            %% concluido, cancelado, extornado, aberto
-            ENUM status
-            INT pontos
-            %% caso der algum problema, adicionar observaçao
-            STRING observacao
-            DATETIME created_at
-            DATETIME updated_at
-        }
-        ticket_credito {
-            INT id PK
-            INT cliente_id FK
-            %% selecionado a partir de um dropdown
-            INT estabelecimento_id FK
-            IMG imagem
-            UUID codigo
-            %% concluido, cancelado, aberto
-            ENUM status
-            DECIMAL preco
-            INT pontos
-            DATETIME data_nota
-            STRING numero_nota
-            %% caso der algum problema, adicionar observaçao
-            STRING observacao
-            DATETIME created_at
-            DATETIME updated_at
-        }
-        logs {
-            INT id PK
-            INT estabelecimento_id FK
-            INT usuario_id
-            STRING tipo_usuario
-            STRING acao
-            %% JSON ou STRING
-            JSON detalhes
-            DATETIME timestamp
-            %% provavelmente sera feito com o logstash ou em arquivo
-        }
-        anuncios {
-            INT id PK
-            INT estabelecimento_id FK
-            IMG anuncio
-            DATETIME expiracao
-            DATETIME created_at
-            DATETIME updated_at
-        }
-        config {
-            INT id PK
-            INT pontos_por_real_gasto
-            INT porcentagem_cashback
-            INT intervalo_compra
-            DATETIME created_at
-            DATETIME updated_at
-        }
+    CLIENTE {
+        int usuario_id PK, FK
+        string nome
+        string cpf UK
+        string telefone UK
+        int pontos
+    }
 
-        clientes ||--o{ ticket_credito : "registra"
-        clientes ||--o{ ticket_debito : "registra"
-        clientes ||--o{ avaliacoes_plataforma : "avalia"
-        clientes ||--o{ avaliacoes_estabelecimento : "avalia"
-        estabelecimentos ||--o{ avaliacoes_estabelecimento : "possui"
-        estabelecimentos ||--o{ ticket_credito : "aprova"
-        estabelecimentos ||--o{ produtos : "possui"
-        estabelecimentos ||--o{ administradores : "tem"
-        estabelecimentos ||--o{ fotos_espaco : "possui"
-        estabelecimentos ||--o{ logs : "possui"
-        estabelecimentos ||--o{ anuncios : "possui"
-        produtos ||--o{ ticket_debito: ""
+    ADMINISTRADOR {
+        int usuario_id PK, FK
+        int estabelecimento_id FK
+        string nome
+        string cpf UK
+        boolean super_user
+    }
+
+    ESTABELECIMENTO {
+        int id PK
+        string nome
+        string endereco
+        string telefone
+        string descricao
+        string logotipo
+        string cnpj UK
+        json horario_funcionamento
+        boolean ativo
+        datetime created_at
+        datetime updated_at
+    }
+
+    PRODUTO {
+        int id PK
+        int estabelecimento_id FK
+        string nome
+        string descricao
+        string imagem
+        decimal preco
+        int pontos
+        boolean ativo
+        datetime created_at
+        datetime updated_at
+    }
+
+    TICKET_CREDITO {
+        int id PK
+        int cliente_id FK
+        int estabelecimento_id FK
+        string imagem
+        string codigo UK
+        string status
+        decimal preco
+        int pontos
+        datetime data_nota
+        string numero_nota
+        string observacao
+        datetime created_at
+        datetime updated_at
+    }
+
+    TICKET_DEBITO {
+        int id PK
+        int cliente_id FK
+        int produto_id FK
+        string codigo UK
+        string status
+        int pontos
+        string observacao
+        datetime created_at
+        datetime updated_at
+    }
+
+    USUARIO ||--o| CLIENTE : possui
+    USUARIO ||--o| ADMINISTRADOR : possui
+    ESTABELECIMENTO ||--o{ ADMINISTRADOR : vincula
+    ESTABELECIMENTO ||--o{ PRODUTO : oferece
+    CLIENTE ||--o{ TICKET_CREDITO : envia
+    ESTABELECIMENTO o|--o{ TICKET_CREDITO : analisa
+    CLIENTE ||--o{ TICKET_DEBITO : solicita
+    PRODUTO o|--o{ TICKET_DEBITO : referencia
 ```
+
+### Regras de relacionamento
+
+- `Usuario` é o modelo de autenticação e pode possuir um perfil `Cliente` ou `Administrador`.
+- `Cliente` e `Administrador` usam `usuario_id` como chave primária e relação um-para-um.
+- Um `Estabelecimento` possui administradores e recompensas.
+- Um cliente pode enviar vários tickets de crédito e criar vários tickets de débito.
+- Um ticket de crédito referencia diretamente o estabelecimento escolhido para a nota.
+- Um ticket de débito referencia o produto resgatado; o estabelecimento é obtido por meio do produto.
+- Tickets de crédito e débito mantêm o código, status, observação e datas de criação/atualização.

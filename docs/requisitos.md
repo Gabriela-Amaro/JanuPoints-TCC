@@ -1,186 +1,124 @@
-[Visão Geral](/README.md) | [Diagrama Entidade Relacionamento](/docs/diagram_er.md) | [Diagrama De Classes](/docs/diagrama_classes.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md) | [Endpoints](/docs/endpoints.md)
+[Visão Geral](/README.md) | [Diagrama Entidade-Relacionamento](/docs/diagram_er.md) | [Diagrama de Classes](/docs/diagrama_classes.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md) | [Endpoints](/docs/endpoints.md)
 
 ---
 
-# Definição detalhada das funcionalidades da plataforma
+# Requisitos do Projeto
+
+## 1. Requisitos funcionais
+
+### RF1. Autenticação e usuários
+
+- RF1.1. O sistema deve permitir o cadastro público de clientes.
+- RF1.2. O sistema deve autenticar clientes e administradores por email e senha.
+- RF1.3. O sistema deve emitir access token e refresh token JWT.
+- RF1.4. O sistema deve permitir a renovação do access token.
+- RF1.5. O sistema deve permitir o logout com blacklist do refresh token.
+- RF1.6. O sistema deve retornar os dados do usuário autenticado.
+- RF1.7. O sistema deve permitir a alteração da senha do usuário autenticado.
+
+### RF2. Cliente
+
+- RF2.1. O cliente deve visualizar seu nome, email e saldo de pontos.
+- RF2.2. O cliente deve consultar estabelecimentos ativos.
+- RF2.3. O cliente deve buscar estabelecimentos pelo nome.
+- RF2.4. O cliente deve consultar as recompensas disponíveis.
+- RF2.5. O cliente deve consultar recompensas por estabelecimento.
+- RF2.6. O cliente deve enviar uma nota fiscal para acumular pontos.
+- RF2.7. O cliente deve informar valor, número e data da nota.
+- RF2.8. O cliente deve anexar a imagem da nota fiscal.
+- RF2.9. O cliente deve acompanhar o status do ticket de crédito.
+- RF2.10. O cliente deve cancelar um ticket de crédito aberto.
+- RF2.11. O cliente deve solicitar o resgate de uma recompensa.
+- RF2.12. O cliente deve acompanhar o status do ticket de débito.
+- RF2.13. O cliente deve cancelar um ticket de débito aberto.
+- RF2.14. O cliente deve concluir um ticket de débito aprovado.
+- RF2.15. O cliente deve consultar o histórico de acúmulos e resgates.
+- RF2.16. O cliente deve atualizar nome, email e telefone.
+- RF2.17. O cliente deve visualizar o CPF cadastrado sem poder alterá-lo.
+
+### RF3. Estabelecimento
+
+- RF3.1. O sistema deve listar estabelecimentos ativos para usuários autenticados.
+- RF3.2. O sistema deve permitir a consulta de detalhes de um estabelecimento.
+- RF3.3. O administrador deve atualizar os dados do estabelecimento associado.
+- RF3.4. O administrador deve atualizar o logotipo do estabelecimento.
+- RF3.5. O administrador deve consultar as recompensas do próprio estabelecimento.
+- RF3.6. O administrador deve cadastrar uma recompensa.
+- RF3.7. O administrador deve editar uma recompensa.
+- RF3.8. O administrador deve excluir uma recompensa.
+- RF3.9. O administrador deve ativar ou desativar uma recompensa.
+
+### RF4. Tickets de crédito
+
+- RF4.1. O cliente deve criar um ticket com os dados da nota fiscal.
+- RF4.2. O sistema deve validar valor positivo, data válida e número não duplicado.
+- RF4.3. O ticket deve iniciar com status `ABERTO`.
+- RF4.4. O administrador deve consultar tickets do estabelecimento associado.
+- RF4.5. O administrador deve aprovar um ticket aberto.
+- RF4.6. A aprovação deve creditar os pontos ao cliente.
+- RF4.7. O administrador deve recusar um ticket aberto.
+- RF4.8. O cliente deve cancelar o próprio ticket enquanto ele estiver aberto.
+
+### RF5. Tickets de débito
+
+- RF5.1. O cliente deve criar um ticket informando uma recompensa.
+- RF5.2. O sistema deve validar produto ativo, estabelecimento ativo e saldo suficiente.
+- RF5.3. O sistema deve debitar os pontos no momento da criação.
+- RF5.4. O ticket deve iniciar com status `ABERTO`.
+- RF5.5. O administrador deve aprovar um ticket aberto.
+- RF5.6. O administrador deve recusar um ticket aberto.
+- RF5.7. A recusa deve devolver os pontos ao cliente.
+- RF5.8. O cliente deve cancelar um ticket aberto e receber os pontos de volta.
+- RF5.9. O cliente deve concluir um ticket aprovado.
+
+### RF6. Painel web e atualização da fila
+
+- RF6.1. O painel deve exibir a fila de tickets abertos.
+- RF6.2. O painel deve exibir contadores de solicitações.
+- RF6.3. O painel deve permitir visualizar os detalhes de um ticket.
+- RF6.4. O painel deve permitir aprovar ou recusar tickets.
+- RF6.5. O painel deve receber eventos SSE quando a fila for alterada.
+- RF6.6. O painel deve restringir o acesso a administradores.
+
+## 2. Requisitos não funcionais
+
+### RNF1. Segurança
+
+- A autenticação deve utilizar JWT.
+- As senhas devem ser armazenadas usando o mecanismo de hash do Django.
+- As rotas protegidas devem exigir autenticação.
+- O acesso aos objetos deve respeitar o usuário e o estabelecimento associado.
+- O CORS deve ser configurável por ambiente.
+- Os tokens devem possuir renovação e blacklist para logout.
+
+### RNF2. Integridade
+
+- Operações que alteram saldo devem utilizar transações atômicas.
+- CPF, email, telefone, CNPJ e códigos de tickets devem respeitar as restrições de unicidade configuradas.
+- Tickets processados não devem ser aprovados, recusados ou cancelados novamente.
+
+### RNF3. Usabilidade
+
+- O aplicativo deve apresentar mensagens de validação para dados inválidos.
+- O aplicativo deve informar estados de carregamento, erro e vazio.
+- O painel deve apresentar feedback visual após operações de criação, edição, aprovação e recusa.
+- As interfaces devem usar linguagem consistente para acúmulo, resgate, recompensa e status.
 
-## Requisitos Funcionais (RF)
+### RNF4. Desempenho
 
-### RF1. Administrador do Sistema
-
-#### RF1.1. Cadastrar novas empresas
-
-* Cadastra empresas inicialmente **desativadas**, com um **superusuário** (administrador da empresa) associado.
-* Conta do superusuário criada com login genérico que deve ser alterado no **primeiro acesso**.
-
-#### RF1.2. Gerenciar empresas e superusuários
-
-* Listar empresas e superusuários.
-* Ativar/desativar contas de empresas e superusuários.
-
-#### RF1.3. Visualizar métricas da plataforma
-
-* Acessar dashboards contendo:
-
-  * Número de usuários cadastrados.
-  * Total de transações realizadas.
-  * Pontos acumulados na plataforma.
-  * Avaliações de estabelecimentos e da plataforma.
-
-#### RF1.4. Auditoria e logs
-
-* Acesso a registros de atividades **administrativas** e **operacionais** do sistema.
-
----
-
-### RF2. Administrador (superusuário) de cada empresa
-
-#### RF2.1. Cadastrar e gerenciar funcionários
-
-* Cadastro de usuários vinculados ao estabelecimento com login genérico.
-* Troca de senha obrigatória no primeiro acesso.
-
-#### RF2.2. Gerenciar perfil do estabelecimento
-
-* Atualizar dados do estabelecimento:
-
-  * Nome, endereço, telefone, descrição.
-  * Logotipo, CNPJ, imagens.
-  * Horário de funcionamento.
-
-#### RF2.3. Acompanhar métricas do estabelecimento
-
-* Visualização de:
-
-  * Volume de transações.
-  * Produtos/serviços mais resgatados.
-  * Avaliações dos clientes.
-
-#### RF2.4. Auditoria e logs
-
-* Acesso a registros de atividades **administrativas** e **operacionais** do estabelecimento.
-
-#### Demais funcionalidades comum aos funcionários
-
----
-
-### RF3. Funcionários das empresas parceiras
-
-#### RF3.1. Gerenciar tickets de crédito
-
-* Confirmar ou recusar pedidos de crédito de pontos mediante **análise de nota fiscal**.
-
-#### RF3.2. Gerenciar tickets de débito (resgate)
-
-* Validar ou recusar uso de pontos em resgates de clientes.
-
-#### RF3.3. Gerenciar catálogo de produtos e serviços
-
-* Cadastrar, editar e remover itens disponíveis para troca por pontos.
-
-#### RF3.4. Gerenciar anúncios
-
-* Cadastrar banners promocionais com data de expiração.
-
-#### RF3.5. Visualizar feedbacks
-
-* Acesso às avaliações feitas pelos clientes sobre produtos/serviços e atendimento.
-
-#### RF3.5. Histórico de transações
-
-* Consulta de todas as operações de crédito e débito de pontos realizadas por clientes.
-
----
-
-### RF4. Cliente (Consumidor)
-
-#### RF4.1. Cadastro e acesso
-
-* Cadastro: nome, CPF, e-mail, telefone e senha.
-* Login com e-mail e senha.
-* Recuperação de senha (opcional).
-
-#### RF4.2. Gerenciamento de conta
-
-* Edição de dados pessoais.
-* Exclusão de conta.
-
-#### RF4.3. Consulta de estabelecimentos
-
-* Lista de comércios participantes com **filtros** e **ordenadores** (nome, localização, avaliação).
-
-#### RF4.4. Resgate de pontos (débito)
-
-* Solicitar resgate de recompensa e acompanhar status (pendente, aprovado, recusado, cancelado).
-
-#### RF4.5. Acúmulo de pontos (crédito)
-
-* Envio de dados de consumo:
-
-  * Anexar imagem da nota fiscal.
-  * Informar número, valor e data de emissão.
-* Acompanhamento de status de validação.
-
-#### RF4.6. Extrato de pontos (histórico)
-
-* Consulta de todas as transações de crédito e débito:
-
-  * Data, tipo, valor em pontos, descrição, status e observações.
-* Filtros por período, tipo de operação e estabelecimento.
-
-#### RF4.7. Saldo atual de pontos
-
-* Exibição do total disponível.
-* Avisos de pontos que estão prestes a expirar.
-
-#### RF4.8. Catálogo de recompensas
-
-* Listagem de produtos/serviços por estabelecimento.
-* Filtros por valor em pontos ou nome.
-
-#### RF4.9. Avaliações
-
-* Avaliar estabelecimentos e a plataforma com estrelas e comentário.
-* Histórico de avaliações realizadas.
-
-#### RF4.10. Notificações (MVP opcional)
-
-* Alertas sobre mudanças no status de tickets, novidades no catálogo, promoções e expiração de pontos.
-
----
-
-## Requisitos Não Funcionais (RNF)
-
-### RNF1. Usabilidade
-
-* Interface intuitiva e acessível para usuários com diferentes níveis de letramento digital.
-
-### RNF2. Desempenho
-
-* Tempo de resposta máximo de **2 segundos** para ações críticas (login, pontuação, resgate).
-
-### RNF3. Segurança
-
-* Comunicação via **HTTPS**.
-* Armazenamento seguro de senhas (hash).
-* Autenticação por tokens JWT.
-* Proteção contra XSS, CSRF e SQL Injection.
-* Política de senhas fortes.
-
-### RNF4. Escalabilidade
-
-* Arquitetura preparada para aumento de usuários e estabelecimentos, com possibilidade de migração para infraestrutura mais robusta.
+- A consulta de tickets do painel deve utilizar o stream SSE para evitar atualizações manuais constantes.
+- As consultas de produtos e estabelecimentos devem permitir filtros por busca.
+- O backend deve usar consultas relacionadas nos viewsets de produtos e tickets.
 
 ### RNF5. Compatibilidade
 
-* Aplicação responsiva para **Android**, **iOS** e navegadores modernos.
+- O aplicativo deve funcionar nos ambientes suportados pelo Expo.
+- O painel deve funcionar em navegadores modernos.
+- A API deve aceitar requisições JSON e upload `multipart/form-data` quando necessário.
 
-### RNF6. Confiabilidade e Disponibilidade
+### RNF6. Manutenibilidade
 
-* Disponibilidade mínima de **99%**.
-* Mecanismos de backup automático e recuperação de desastres.
-
-### RNF7. Manutenibilidade
-
-* Código e arquitetura seguindo padrões que facilitem manutenção e evolução futura.
-
+- O backend deve separar modelos, serializers, views, permissões e URLs por domínio.
+- O mobile deve organizar telas, hooks, contextos, serviços e componentes reutilizáveis.
+- O painel deve utilizar módulos JavaScript separados por página, serviço e utilitário.
+- A documentação deve refletir as rotas e fluxos implementados.

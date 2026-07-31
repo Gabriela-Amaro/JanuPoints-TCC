@@ -1,205 +1,275 @@
-[Visão Geral](/README.md) | [Diagrama Entidade Relacionamento](/docs/diagram_er.md) | [Diagrama De Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Endpoints](/docs/endpoints.md)
+[Visão Geral](/README.md) | [Diagrama Entidade-Relacionamento](/docs/diagram_er.md) | [Diagrama de Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Endpoints](/docs/endpoints.md)
 
 ---
 
-### Fluxo de Requisição
+# Fluxo de Requisições
 
-#### Visão Geral da Interação
+## 1. Comunicação entre as aplicações
 
-A comunicação entre os clientes (aplicativo mobile e painel web) e o servidor seguirá o padrão RESTful sobre HTTPS. A autorização para endpoints protegidos será feita através de um Bearer Token (JWT) enviado no cabeçalho `Authorization` de cada requisição.
-
-##### Snippet de código
+O aplicativo mobile e o painel web consomem a API Django REST. Durante o desenvolvimento local, a comunicação utiliza HTTP. Em um ambiente publicado, o serviço deve ser colocado atrás de HTTPS.
 
 ```mermaid
-    graph TD
-        subgraph "Usuários"
-            A[Cliente - App Mobile]
-            B[Admin/Funcionário - Painel Web]
-        end
-
-        subgraph "Infraestrutura"
-            C[API Gateway / Nginx]
-            D[Backend - Django/DRF]
-            E[Banco de Dados - PostgreSQL]
-            F[Serviços Externos - Email, S3]
-        end
-
-        A --> |1. Requisição HTTPS| C
-        B --> |1. Requisição HTTPS| C
-        C --> |2. Forward para Aplicação| D
-        D --> |3. Consulta/Persistência| E
-        D --> |4. Ações - Ex: Enviar Email| F
-        E --> |5. Retorna Dados| D
-        D --> |6. Resposta JSON| C
-        C --> |7. Retorna Resposta| A
-        C --> |7. Retorna Resposta| B
+flowchart TD
+    Cliente[Cliente] --> Mobile[Aplicativo mobile]
+    Administrador[Administrador] --> Web[Painel web]
+    Mobile -->|HTTP + Bearer JWT| API[API Django REST]
+    Web -->|HTTP + Bearer JWT| API
+    API --> Banco[(PostgreSQL)]
+    API --> Media[Media local]
+    API -->|SSE| Web
 ```
 
-#### Fluxo 1: Cadastro de Cliente e Primeiro Acesso
+### Autenticação comum
 
-Este fluxo descreve como um novo cliente se cadastra na plataforma e realiza seu primeiro login.
+1. A aplicação envia email e senha para `/api/auth/token/`.
+2. A API retorna `access` e `refresh`.
+3. O cliente armazena os tokens.
+4. As requisições protegidas enviam `Authorization: Bearer <access>`.
+5. Ao receber `401`, o aplicativo mobile tenta renovar o access token com `/api/auth/token/refresh/`.
+6. No logout, o refresh token é enviado para `/api/auth/logout/`.
 
-**Atores:** Cliente
+---
 
-##### Snippet de código
+## 2. Cadastro e primeiro acesso do cliente
 
 ```mermaid
 sequenceDiagram
-participant ClienteApp as App do Cliente
-participant BackendAPI as API Backend
-participant BancoDeDados as Banco de Dados
+    participant Cliente as Aplicativo mobile
+    participant API as API Django
+    participant Banco as PostgreSQL
 
-    ClienteApp->>BackendAPI: 1. POST /clientes/cadastro <br> {nome, cpf, email, senha, ...}
-    activate BackendAPI
-    BackendAPI->>BancoDeDados: 2. INSERT na tabela `clientes`
-    activate BancoDeDados
-    BancoDeDados-->>BackendAPI: 3. Retorna dados do cliente criado
-    deactivate BancoDeDados
-    BackendAPI-->>ClienteApp: 4. Resposta 201 Created <br> {id, nome, email, ...}
-    deactivate BackendAPI
-
-    ClienteApp->>BackendAPI: 5. POST /auth/login <br> {email, senha}
-    activate BackendAPI
-    BackendAPI->>BancoDeDados: 6. SELECT na tabela `clientes` para validar credenciais
-    activate BancoDeDados
-    BancoDeDados-->>BackendAPI: 7. Retorna dados do usuário
-    deactivate BancoDeDados
-    BackendAPI-->>ClienteApp: 8. Resposta 200 OK <br> {token, usuario}
-    deactivate BackendAPI
+    Cliente->>API: POST /api/clientes/cadastro/
+    API->>API: Valida email, CPF, telefone e senhas
+    API->>Banco: Cria Usuario e Cliente
+    Banco-->>API: Cliente criado
+    API-->>Cliente: 201 Created
+    Cliente->>API: POST /api/auth/token/
+    API->>Banco: Valida credenciais
+    Banco-->>API: Usuário autenticado
+    API-->>Cliente: access + refresh
+    Cliente->>API: GET /api/me/
+    API-->>Cliente: Perfil e saldo
+    Cliente->>Cliente: Abre /(tabs)/home
 ```
 
-##### Passo a Passo:
+### Validações
 
-1. **Requisição de Cadastro:** O cliente preenche seus dados no aplicativo. O app envia uma requisição `POST /clientes/cadastro`.
+- email único;
+- CPF válido e único;
+- telefone válido e único;
+- senha e confirmação iguais;
+- senha submetida às validações do Django.
 
-2. **Processamento no Backend:** A API recebe os dados, valida (ex: CPF e e-mail únicos) e, se tudo estiver correto, cria um novo registro na tabela `clientes`.
+---
 
-3. **Resposta de Sucesso:** A API retorna o status `201 Created` com os dados básicos do cliente recém-criado.
-
-4. **Requisição de Login:** Após o cadastro, o cliente usa seu e-mail e senha para fazer login. O app envia uma requisição `POST /auth/login`.
-
-5. **Autenticação e Geração de Token:** A API valida as credenciais contra o banco de dados. Se forem válidas, gera um token JWT.
-
-6. **Retorno do Token:** A API responde com o status `200 OK`, enviando o token JWT e as informações do usuário. O aplicativo cliente deve armazenar este token de forma segura para usar em requisições futuras.
-
-#### Fluxo 2: Cliente Acumulando Pontos (Envio de Nota Fiscal)
-
-Este fluxo mostra a interação quando um cliente envia uma nota fiscal para acumular pontos.
-
-**Atores:** Cliente, Funcionário do Estabelecimento
-
-##### Snippet de código
+## 3. Consulta de estabelecimentos e recompensas
 
 ```mermaid
 sequenceDiagram
-participant ClienteApp as App do Cliente
-participant BackendAPI as API Backend
-participant FuncionarioPainel as Painel do Funcionário
+    participant Cliente as Aplicativo mobile
+    participant API as API Django
+    participant Banco as PostgreSQL
 
-    ClienteApp->>BackendAPI: 1. POST /tickets/credito (multipart/form-data) <br> (com anexo da imagem e dados da nota)
-    activate BackendAPI
-    BackendAPI-->>ClienteApp: 2. Resposta 202 Accepted <br> (Ticket pendente)
-    deactivate BackendAPI
+    Cliente->>API: GET /api/estabelecimentos/
+    API->>Banco: Consulta estabelecimentos ativos
+    Banco-->>API: Lista de parceiros
+    API-->>Cliente: JSON
 
-    %% Tempo depois, o funcionário valida %%
+    Cliente->>API: GET /api/estabelecimentos/{id}/
+    API->>Banco: Consulta estabelecimento
+    Banco-->>API: Dados do parceiro
+    API-->>Cliente: JSON
 
-    FuncionarioPainel->>BackendAPI: 3. GET /tickets/credito?status=pendente
-    activate BackendAPI
-    BackendAPI-->>FuncionarioPainel: 4. Lista de tickets pendentes
-    deactivate BackendAPI
-
-    FuncionarioPainel->>BackendAPI: 5. PATCH /tickets/credito/{ticketId}/validar <br> {status: "aprovado"}
-    activate BackendAPI
-    BackendAPI-->>FuncionarioPainel: 6. Resposta 200 OK <br> (Ticket atualizado)
-    deactivate BackendAPI
+    Cliente->>API: GET /api/produtos/?estabelecimento={id}
+    API->>Banco: Consulta recompensas disponíveis
+    Banco-->>API: Produtos ativos
+    API-->>Cliente: JSON
 ```
 
-##### Passo a Passo:
+O painel web utiliza os mesmos recursos para consultar os dados do estabelecimento e carregar o catálogo.
 
-1. **Envio do Cliente:** O cliente, já autenticado, envia os dados e a imagem da nota fiscal através de uma requisição `POST /tickets/credito`. O corpo é do tipo `multipart/form-data`.
+---
 
-2. **Criação do Ticket:** O Backend cria um registro na tabela `ticket_credito` com o status "pendente" e responde `202 Accepted`, indicando que a solicitação foi recebida mas ainda não processada.
+## 4. Acúmulo de pontos
 
-3. **Validação pelo Funcionário:** O funcionário do estabelecimento, através do seu painel web, busca por tickets pendentes (`GET /tickets/credito`).
-
-4. **Aprovação/Recusa:** Após analisar a nota, o funcionário aprova ou recusa o ticket enviando uma requisição `PATCH /tickets/credito/{ticketId}/validar` com o status correspondente.
-
-5. **Atualização no Backend:** A API atualiza o status do ticket. Se for "aprovado", o sistema calcula os pontos com base nas regras de negócio e os credita na conta do cliente, atualizando o campo `pontos` na tabela `clientes`.
-
-#### Fluxo 3: Cliente Resgatando um Produto com Pontos
-
-Este fluxo detalha o processo de um cliente utilizando seus pontos para resgatar uma recompensa.
-
-**Atores:** Cliente, Funcionário do Estabelecimento
-
-##### Snippet de código
+O acúmulo começa no aplicativo mobile e termina com a análise do estabelecimento.
 
 ```mermaid
 sequenceDiagram
-participant ClienteApp as App do Cliente
-participant BackendAPI as API Backend
-participant FuncionarioPainel as Painel do Funcionário
+    participant Cliente as Aplicativo mobile
+    participant API as API Django
+    participant Banco as PostgreSQL
+    participant Painel as Painel web
 
-    ClienteApp->>BackendAPI: 1. GET /estabelecimentos/{id}/catalogo
-    BackendAPI-->>ClienteApp: 2. Lista de produtos/recompensas
+    Cliente->>Cliente: Captura imagem da nota fiscal
+    Cliente->>API: POST /api/tickets/credito/\n multipart/form-data
+    API->>API: Valida nota e estabelecimento
+    API->>Banco: Cria TicketCredito ABERTO
+    Banco-->>API: Ticket criado
+    API-->>Cliente: 201 Created
 
-    ClienteApp->>BackendAPI: 3. POST /tickets/debito <br> {produto_id: 123}
-    activate BackendAPI
-    BackendAPI-->>ClienteApp: 4. Resposta 201 Created <br> {id, status: "pendente", codigo_resgate, ...}
-    deactivate BackendAPI
+    Painel->>API: GET /api/tickets/credito/
+    API->>Banco: Busca tickets do estabelecimento
+    Banco-->>API: Tickets ABERTOS
+    API-->>Painel: Lista de solicitações
 
-    %% No estabelecimento, o cliente mostra o código %%
+    Painel->>API: GET /api/tickets/stream/?token=JWT
+    API-->>Painel: tickets_changed ou heartbeat
 
-    FuncionarioPainel->>BackendAPI: 5. (Busca pelo código ou na lista) <br> PATCH /tickets/debito/{ticketId}/validar <br> {status: "concluido"}
-    activate BackendAPI
-    BackendAPI-->>FuncionarioPainel: 6. Resposta 200 OK <br> (Ticket de débito atualizado)
-    deactivate BackendAPI
+    Painel->>API: POST /api/tickets/credito/{id}/aprovar/
+    API->>Banco: Atualiza ticket para CONCLUIDO
+    API->>Banco: Credita pontos ao cliente
+    Banco-->>API: Transação concluída
+    API-->>Painel: Resultado da aprovação
+
+    API-->>Painel: evento tickets_changed
+    Cliente->>API: GET /api/tickets/credito/{id}/
+    API-->>Cliente: Ticket e pontos calculados
 ```
 
-##### Passo a Passo:
+### Dados enviados
 
-1. **Consulta ao Catálogo:** O cliente consulta os produtos disponíveis em um estabelecimento através da requisição `GET /estabelecimentos/{id}/catalogo`.
+```text
+estabelecimento
+imagem
+preco
+data_nota
+numero_nota
+```
 
-2. **Solicitação de Resgate:** Ao escolher um produto, o aplicativo envia uma `POST /tickets/debito` com o ID do produto.
+### Decisão do estabelecimento
 
-3. **Processamento no Backend:** A API verifica se o cliente possui pontos suficientes. Em caso afirmativo, debita os pontos da conta do cliente e cria um registro na tabela `ticket_debito` com status "pendente" e um `codigo_resgate` único.
+- **Aprovar:** o ticket passa para `CONCLUIDO` e os pontos são creditados.
+- **Recusar:** o ticket passa para `RECUSADO` e recebe uma observação.
+- **Cancelar pelo cliente:** permitido somente enquanto o ticket estiver `ABERTO`.
 
-4. **Retorno do Código:** A API retorna `201 Created` com os detalhes do ticket, incluindo o `codigo_resgate` que o cliente deverá apresentar no estabelecimento.
+---
 
-5. **Validação do Resgate:** No local, o funcionário recebe o código do cliente, localiza o ticket em seu painel e o finaliza com uma requisição `PATCH /tickets/debito/{ticketId}/validar`, alterando o status para "concluido".
-
-6. **Confirmação:** O Backend atualiza o status do ticket, efetivando o resgate.
-
-#### Fluxo 4: Gestão de Empresas pelo Administrador da Plataforma
-
-Este fluxo descreve como o administrador geral do sistema cadastra e ativa uma nova empresa parceira.
-
-**Atores:** Admin da Plataforma
-
-##### Snippet de código
+## 5. Resgate de uma recompensa
 
 ```mermaid
 sequenceDiagram
-participant AdminPainel as Painel do Admin da Plataforma
-participant BackendAPI as API Backend
+    participant Cliente as Aplicativo mobile
+    participant API as API Django
+    participant Banco as PostgreSQL
+    participant Painel as Painel web
 
-    AdminPainel->>BackendAPI: 1. POST /admin/empresas <br> {empresa: {...}, super_usuario: {...}}
-    activate BackendAPI
-    BackendAPI-->>AdminPainel: 2. Resposta 201 Created <br> (Empresa criada como inativa)
-    deactivate BackendAPI
+    Cliente->>API: GET /api/produtos/{id}/
+    API->>Banco: Consulta recompensa
+    Banco-->>API: Produto e pontos
+    API-->>Cliente: Detalhes da recompensa
 
-    AdminPainel->>BackendAPI: 3. PATCH /admin/empresas/{id}/status <br> {ativo: true}
-    activate BackendAPI
-    BackendAPI-->>AdminPainel: 4. Resposta 200 OK <br> (Empresa ativada)
-    deactivate BackendAPI
+    Cliente->>API: POST /api/tickets/debito/\n {produto: id}
+    API->>Banco: Verifica produto, parceiro e saldo
+    API->>Banco: Debita pontos
+    API->>Banco: Cria TicketDebito ABERTO
+    Banco-->>API: Ticket criado
+    API-->>Cliente: 201 Created
+
+    Painel->>API: GET /api/tickets/debito/
+    API-->>Painel: Ticket aberto
+
+    Painel->>API: POST /api/tickets/debito/{id}/aprovar/
+    API->>Banco: Atualiza ticket para APROVADO
+    API-->>Painel: Pedido aprovado
+
+    Cliente->>API: POST /api/tickets/debito/{id}/concluir/
+    API->>Banco: Atualiza ticket para CONCLUIDO
+    API-->>Cliente: Pedido entregue
 ```
 
-##### Passo a Passo:
+### Cancelamento e recusa
 
-1. **Cadastro da Empresa:** O Admin da Plataforma envia os dados da nova empresa e de seu administrador (superusuário) através de uma `POST /admin/empresas`.
+- O cliente pode cancelar um ticket `ABERTO`; os pontos são estornados.
+- O administrador pode recusar um ticket `ABERTO`; os pontos são estornados.
+- Um ticket só pode ser concluído quando estiver `APROVADO`.
 
-2. **Criação no Backend:** A API cria o registro do estabelecimento na tabela `estabelecimentos` (com `ativo = false`) e o registro do administrador na tabela `administradores`, associando-os. Uma senha temporária é gerada para o superusuário.
+---
 
-3. **Ativação da Empresa:** Para que a empresa apareça publicamente, o Admin da Plataforma envia uma requisição `PATCH /admin/empresas/{id}/status` para mudar o campo `ativo` para `true`.
+## 6. Atualização da fila por SSE
 
-4. **Confirmação:** A API atualiza o status da empresa e retorna `200 OK`. Agora o estabelecimento está visível para os clientes e seu administrador pode acessar o painel web.
+O painel abre uma conexão com:
+
+```text
+GET /api/tickets/stream/?token=<access_token>
+```
+
+O backend:
+
+1. valida o access token;
+2. localiza o estabelecimento do administrador;
+3. consulta os IDs dos tickets de crédito e débito com status `ABERTO`;
+4. compara a lista atual com a lista anterior;
+5. envia `tickets_changed` quando há alteração;
+6. envia heartbeat quando não há alteração;
+7. repete a verificação a cada dois segundos.
+
+O painel recebe o evento e recarrega os dados do dashboard.
+
+---
+
+## 7. Atualização do perfil do estabelecimento
+
+```mermaid
+sequenceDiagram
+    participant Painel as Painel web
+    participant API as API Django
+    participant Banco as PostgreSQL
+
+    Painel->>API: GET /api/me/
+    API-->>Painel: Administrador e estabelecimento associado
+    Painel->>API: GET /api/estabelecimentos/{id}/
+    API-->>Painel: Dados atuais
+    Painel->>Painel: Preenche formulário e preview
+    Painel->>API: PATCH /api/estabelecimentos/{id}/
+    API->>Banco: Atualiza dados
+    Banco-->>API: Estabelecimento atualizado
+    API-->>Painel: JSON atualizado
+    Painel->>API: PATCH com logotipo, quando necessário
+    API-->>Painel: Imagem atualizada
+```
+
+Campos editáveis apresentados no painel:
+
+- nome;
+- endereço;
+- telefone;
+- descrição;
+- logotipo.
+
+---
+
+## 8. Atualização dos dados do cliente
+
+```mermaid
+sequenceDiagram
+    participant Cliente as Aplicativo mobile
+    participant API as API Django
+    participant Banco as PostgreSQL
+
+    Cliente->>API: GET /api/me/
+    API-->>Cliente: Dados pessoais
+    Cliente->>Cliente: Edita nome, email e telefone
+    Cliente->>API: PATCH /api/clientes/{id}/
+    API->>Banco: Atualiza Cliente e Usuario
+    Banco-->>API: Dados atualizados
+    API-->>Cliente: Perfil atualizado
+```
+
+O CPF é exibido como somente leitura.
+
+---
+
+## 9. Tratamento de erros
+
+As aplicações apresentam estados de carregamento, erro e vazio. Os principais códigos HTTP utilizados são:
+
+- `200 OK`: consulta ou atualização concluída.
+- `201 Created`: recurso criado.
+- `204 No Content`: recurso excluído.
+- `400 Bad Request`: dados inválidos ou transição de status não permitida.
+- `401 Unauthorized`: ausência ou invalidade do token.
+- `403 Forbidden`: usuário sem permissão para o recurso.
+- `404 Not Found`: recurso inexistente.
+
+O aplicativo mobile interpreta mensagens `error`, `detail` e erros de validação retornados pelos serializers.

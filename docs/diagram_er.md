@@ -40,7 +40,7 @@ erDiagram
         string endereco
         string telefone
         string descricao
-        string logotipo
+        image logotipo
         string cnpj UK
         json horario_funcionamento
         boolean ativo
@@ -53,7 +53,7 @@ erDiagram
         int estabelecimento_id FK
         string nome
         string descricao
-        string imagem
+        image imagem
         decimal preco
         int pontos
         boolean ativo
@@ -65,7 +65,7 @@ erDiagram
         int id PK
         int cliente_id FK
         int estabelecimento_id FK
-        string imagem
+        image imagem
         string codigo UK
         string status
         decimal preco

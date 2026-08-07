@@ -170,12 +170,9 @@ sequenceDiagram
     API-->>Painel: Ticket aberto
 
     Painel->>API: POST /api/tickets/debito/{id}/aprovar/
-    API->>Banco: Atualiza ticket para APROVADO
-    API-->>Painel: Pedido aprovado
-
-    Cliente->>API: POST /api/tickets/debito/{id}/concluir/
     API->>Banco: Atualiza ticket para CONCLUIDO
-    API-->>Cliente: Pedido entregue
+    API-->>Painel: Pedido Aprovado
+    API-->>Cliente: Pedido Concluído
 ```
 
 ### Cancelamento e recusa

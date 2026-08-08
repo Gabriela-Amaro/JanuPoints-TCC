@@ -165,6 +165,14 @@ docker compose up -d
 docker compose exec app python manage.py migrate
 ```
 
+Para popular o banco de dados com dados de demonstração (estabelecimentos, usuários, produtos e tickets):
+
+```bash
+docker compose exec app python manage.py popular_banco
+```
+
+Os dados de login dos usuários criados serão exibidos ao final do comando. A senha padrão de todos os usuários é `Janu@2026`.
+
 A API ficará disponível em `http://localhost:8000`.
 
 ### Painel web

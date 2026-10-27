@@ -13,7 +13,7 @@ export class AuthService {
 
   // Verificar se o usuário está autenticado
   checkAuthStatus() {
-    const token = localStorage.getItem("authToken");
+    const token = apiService.getAccessToken();
     const isAuth = localStorage.getItem("isAuthenticated") === "true";
     return !!(token && isAuth);
   }

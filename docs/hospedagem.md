@@ -204,12 +204,3 @@ EAS. Gerar APK é separado de hospedar API/painel. O workflow não cria contas E
 - **Admin sem CSS:** confirme que `collectstatic` passou no build.
 - **Senha não muda ao alterar variável:** o seed preserva as senhas existentes.
   Use a alteração de senha no Admin enquanto tiver acesso à conta.
-
-## 10. O que substitui o deploy anterior
-
-Foram removidos `infra/terraform`, `infra/ansible` e
-`app/backend/docker-compose.prod.yml`, que eram exclusivos da EC2. A biblioteca
-`django-storages` e o SDK `boto3` permanecem porque são usados pelo protocolo S3
-do Supabase; isso não exige conta AWS. O Compose local e a geração de APK foram
-mantidos. Não foi executada nenhuma operação na AWS: se você já criou recursos
-lá, verifique e remova-os pela sua conta para encerrar cobranças.

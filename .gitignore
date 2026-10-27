@@ -4,3 +4,6 @@ apresentacao/
 # Chaves SSH e credenciais locais
 *.pem
 *.jks
+
+# Revisão local da documentação
+/docs/revisao_documentacao.md

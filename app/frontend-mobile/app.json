@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "janu-prime",
-    "slug": "janu-prime",
+    "name": "JanuPoints",
+    "slug": "janupoints",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "januprime",
+    "scheme": "janupoints",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
@@ -16,7 +16,8 @@
         "backgroundColor": "#6F3D2E"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.januprime"
+      "package": "br.com.janupoints.app",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",

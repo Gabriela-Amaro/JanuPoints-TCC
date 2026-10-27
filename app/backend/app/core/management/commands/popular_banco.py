@@ -3,7 +3,10 @@
 from datetime import timedelta
 from decimal import Decimal, ROUND_UP
 from pathlib import Path
-import shutil
+from io import BytesIO
+
+from django.core.files.base import ContentFile, File
+from django.core.files.storage import default_storage
 from unicodedata import normalize
 
 from constance import config
@@ -46,9 +49,22 @@ class Command(BaseCommand):
             help="Destino do relatório de todos os usuários (padrão: /app/ACESSOS_TESTE.local.md).",
         )
 
+        parser.add_argument(
+            "--sem-relatorio",
+            action="store_true",
+            help="Não grava relatório de senhas no servidor.",
+        )
+
     def handle(self, *args, **options):
-        if settings.ENV != "development":
-            raise CommandError("Dados de teste exigem DJANGO_ENV=development.")
+        if settings.ENV != "development" and not settings.ALLOW_DEMO_DATA:
+            raise CommandError(
+                "Dados de teste exigem DJANGO_ENV=development ou ALLOW_DEMO_DATA=true."
+            )
+        if settings.ENV != "development" and len(settings.DEMO_PASSWORD) < 12:
+            raise CommandError(
+                "Defina DEMO_PASSWORD com pelo menos 12 caracteres para a demonstração hospedada."
+            )
+        self.senha = settings.DEMO_PASSWORD or SENHA_PADRAO
         self.taxa = Decimal(str(config.PONTOS_POR_REAL_GASTO))
         cashback = Decimal(str(config.PORCENTAGEM_CASHBACK))
         if self.taxa <= 0 or cashback <= 0:
@@ -73,25 +89,26 @@ class Command(BaseCommand):
             self._equipe(estabelecimentos)
             clientes = self._clientes()
             self._tickets(clientes, estabelecimentos, produtos)
-            self._relatorio(options["arquivo_logins"])
+            if not options["sem_relatorio"]:
+                self._relatorio(options["arquivo_logins"])
         self.stdout.write(
             self.style.SUCCESS(
                 f"Carga concluída: 6 estabelecimentos alimentícios, 24 produtos, "
                 f"12 funcionários, 8 clientes e 1 superusuário de demonstração.\n"
                 f"Novos registros: {len(self.novas_contas)} usuários, "
                 f"{self.novos_creditos} créditos e {self.novos_debitos} resgates.\n"
-                f"Acessos: {options['arquivo_logins']}\n"
-                f"Senha inicial dos novos usuários: {SENHA_PADRAO}"
+                "Consulte os emails em docs/acessos_teste.md. "
+                "As senhas preexistentes foram preservadas."
             )
         )
 
     def _imagem(self, chave, pasta, subpasta_origem=""):
         relativo = Path(pasta) / "demo" / f"{chave}.jpg"
-        destino = Path(settings.MEDIA_ROOT) / relativo
-        destino.parent.mkdir(parents=True, exist_ok=True)
-        if not destino.exists():
-            shutil.copyfile(ASSETS / subpasta_origem / f"{chave}.jpg", destino)
-        return relativo.as_posix()
+        nome = relativo.as_posix()
+        if not default_storage.exists(nome):
+            with (ASSETS / subpasta_origem / f"{chave}.jpg").open("rb") as origem:
+                return default_storage.save(nome, File(origem))
+        return nome
 
     def _catalogo(self):
         estabelecimentos, produtos = [], []
@@ -165,7 +182,7 @@ class Command(BaseCommand):
                 f"Conta de demonstração em conflito: {email}. Nenhuma permissão foi alterada."
             )
         if criado:
-            usuario.set_password(SENHA_PADRAO)
+            usuario.set_password(self.senha)
             usuario.save()
             self.novas_contas.add(email)
             self.senhas_conhecidas.add(email)
@@ -235,9 +252,8 @@ class Command(BaseCommand):
 
     def _cupom(self, codigo, estabelecimento, valor, data):
         relativo = Path("notas_fiscais") / "demo" / f"{codigo}.png"
-        destino = Path(settings.MEDIA_ROOT) / relativo
-        destino.parent.mkdir(parents=True, exist_ok=True)
-        if not destino.exists():
+        nome = relativo.as_posix()
+        if not default_storage.exists(nome):
             imagem = Image.new("RGB", (760, 680), "#fffdf5")
             desenho = ImageDraw.Draw(imagem)
             fonte = ImageFont.load_default(size=22)
@@ -265,8 +281,10 @@ class Command(BaseCommand):
             desenho.multiline_text(
                 (28, 28), texto, fill="#262626", font=fonte, spacing=12
             )
-            imagem.save(destino)
-        return relativo.as_posix()
+            conteudo = BytesIO()
+            imagem.save(conteudo, format="PNG")
+            return default_storage.save(nome, ContentFile(conteudo.getvalue()))
+        return nome
 
     def _credito(self, cliente, estabelecimento, codigo, valor, status, dias):
         existente = TicketCredito.objects.filter(codigo=codigo).first()
@@ -276,6 +294,15 @@ class Command(BaseCommand):
                 or existente.estabelecimento_id != estabelecimento.pk
             ):
                 raise CommandError(f"Código de ticket em conflito: {codigo}.")
+            # Restaura o comprovante do seed se o storage foi trocado ou esvaziado.
+            if existente.imagem and not default_storage.exists(existente.imagem.name):
+                existente.imagem = self._cupom(
+                    codigo, estabelecimento, existente.preco, existente.data_nota
+                )
+                # update() não altera o histórico de datas/status do ticket.
+                TicketCredito.objects.filter(pk=existente.pk).update(
+                    imagem=existente.imagem.name
+                )
             return
         pontos = int(valor * self.taxa)
         data = self.agora - timedelta(days=dias, hours=1)
@@ -400,9 +427,9 @@ class Command(BaseCommand):
                 nome, estabelecimento = "—", "—"
                 cargo = "Superusuário" if usuario.is_superuser else usuario.tipo_usuario
             senha = (
-                SENHA_PADRAO
+                self.senha
                 if usuario.email in self.senhas_conhecidas
-                or usuario.check_password(SENHA_PADRAO)
+                or usuario.check_password(self.senha)
                 else "Preexistente; não alterada"
             )
             campos = [

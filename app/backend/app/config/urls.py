@@ -14,6 +14,7 @@ from produtos.views import ProdutoViewSet
 from tickets.views.debito_view import TicketDebitoViewSet
 from tickets.views.credito_view import TicketCreditoViewSet
 from tickets.views.sse_view import ticket_stream_view
+from core.health import health
 
 
 
@@ -26,6 +27,7 @@ router.register(r'tickets/debito', TicketDebitoViewSet, basename='ticket_debito'
 router.register(r'tickets/credito', TicketCreditoViewSet, basename='ticket_credito')
 
 urlpatterns = [
+    path("healthz/", health, name="health"),
     path("admin/", admin.site.urls),
     # Endpoints para Autenticação JWT
     path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),

@@ -1,2 +1,6 @@
 rascunhos/
 apresentacao/
+
+# Chaves SSH e credenciais locais
+*.pem
+*.jks

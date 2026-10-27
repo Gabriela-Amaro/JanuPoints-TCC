@@ -209,3 +209,9 @@ Consulte [Execução](/app/execucao/exec.md) para os comandos completos.
 - [Diagrama Entidade-Relacionamento](/docs/diagram_er.md)
 - [Diagrama de Classes](/docs/diagrama_classes.md)
 - [Instruções de Execução](/app/execucao/exec.md)
+
+## Publicação para testes do TCC
+
+O deploy usa Render Free (painel, API e PostgreSQL) e Supabase Storage Free.
+Siga o [passo a passo de hospedagem](docs/hospedagem.md). O Blueprint `render.yaml`
+automatiza os serviços e a carga de demonstração, incluindo o Django Admin.

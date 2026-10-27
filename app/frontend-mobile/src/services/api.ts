@@ -5,11 +5,18 @@ import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from "./stor
 // =============================================================
 // Configuração da URL base da API
 // =============================================================
-// Detecta automaticamente o IP do servidor de desenvolvimento do Expo.
-// Isso funciona tanto em emuladores quanto em dispositivos físicos.
+// Em produção, a URL da API vem de EXPO_PUBLIC_API_URL (definida no build).
+// Em desenvolvimento, detecta automaticamente o IP do servidor Expo.
 // O hostUri do Expo tem o formato "192.168.x.x:8081" — extraímos o IP.
 
 function getBaseUrl(): string {
+  // URL de produção configurada no momento do build (ex.: https://api.seudominio.com)
+  const productionUrl = process.env.EXPO_PUBLIC_API_URL;
+
+  if (productionUrl) {
+    return productionUrl.replace(/\/$/, "");
+  }
+
   // Tenta usar o IP do servidor Expo (funciona em qualquer dispositivo)
   const hostUri = Constants.expoConfig?.hostUri;
 

@@ -1,6 +1,6 @@
 # Acessos de teste do JanuPoints
 
-Contas fictícias criadas por `popular_banco`. Senha inicial de **todas as contas abaixo**: `Janu@2026`.
+Contas fictícias criadas por `popular_banco`. No ambiente **local**, a senha inicial de todas as contas abaixo é `Janu@2026`. No deploy Render, as contas novas usam a senha informada em `DEMO_PASSWORD`; veja o [guia de hospedagem](hospedagem.md).
 
 Execute em `app/backend`:
 

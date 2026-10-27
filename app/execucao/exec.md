@@ -295,3 +295,9 @@ python manage.py test
 | Django Admin | `http://localhost:8000/admin/` |
 | Painel web | `http://localhost:3000` |
 | PostgreSQL local | `localhost:5432` |
+
+## Publicação de demonstração
+
+Para hospedar painel, API e banco no Render Free e imagens no Supabase Storage,
+siga o [guia de hospedagem](../../docs/hospedagem.md). O desenvolvimento local
+continua usando Docker Compose; não precisa de contas nesses serviços.

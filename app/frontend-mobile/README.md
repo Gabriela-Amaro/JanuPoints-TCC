@@ -30,3 +30,5 @@ Os ícones e a splash usam a identidade JanuPoints (J creme com ponto dourado).
 Os arquivos nativos são quadrados, com 1024×1024 pixels; o ícone adaptativo
 inclui margem para as máscaras do Android. A origem está em
 `../../docs/identidade/janupoints-opcao-a-original.png`.
+
+Para conectar o app à API publicada e gerar o APK, siga o [guia de hospedagem](../../docs/hospedagem.md#7-conectar-o-mobile-e-gerar-o-apk).

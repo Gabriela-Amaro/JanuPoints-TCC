@@ -18,6 +18,7 @@ import { EstablishmentHeader } from "../../../components/TicketDetail/Establishm
 import { TicketHeader } from "../../../components/TicketDetail/TicketHeader";
 import { colors } from "../../../constants/Colors";
 import { api, ApiError, BASE_URL } from "../../../services/api";
+import { clearNotaFiscalCapture, createNotaFiscalAttachment, getNotaFiscalCapture } from "../../../services/notaFiscalCapture";
 import type { Estabelecimento } from "../../../types";
 import { styles } from "../../../styles/screens/ticket/acumulo/criar_styles";
 
@@ -56,11 +57,13 @@ function formatPriceInput(text: string): string {
 }
 
 export default function CriarTicketAcumuloScreen() {
-  const { imageUri, establishmentId, establishmentName } = useLocalSearchParams<{
-    imageUri: string;
+  const { captureId, establishmentId, establishmentName } = useLocalSearchParams<{
+    captureId: string;
     establishmentId: string;
     establishmentName: string;
   }>();
+  const photo = getNotaFiscalCapture(captureId);
+  const imageUri = photo?.uri;
 
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -106,8 +109,8 @@ export default function CriarTicketAcumuloScreen() {
       Alert.alert("Erro", "Por favor, digite uma data de emissão válida (DD/MM/AAAA).");
       return;
     }
-    if (!imageUri) {
-      Alert.alert("Erro", "Imagem da nota fiscal não encontrada.");
+    if (!photo) {
+      Alert.alert("Erro", "Foto indisponível. Volte ao estabelecimento e tire a foto novamente.");
       return;
     }
 
@@ -122,6 +125,7 @@ export default function CriarTicketAcumuloScreen() {
     const isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
 
     setSubmitting(true);
+    let attachment: Awaited<ReturnType<typeof createNotaFiscalAttachment>> | undefined;
 
     try {
       const formData = new FormData();
@@ -129,11 +133,9 @@ export default function CriarTicketAcumuloScreen() {
       formData.append("preco", cleanPreco);
       formData.append("numero_nota", numeroNota);
       formData.append("data_nota", isoDate);
-      formData.append("imagem", {
-        uri: imageUri,
-        name: "nota_fiscal.jpg",
-        type: "image/jpeg",
-      } as any);
+      const extension = photo.mimeType === "image/png" ? "png" : "jpg";
+      attachment = await createNotaFiscalAttachment(photo);
+      formData.append("imagem", attachment.blob, `nota_fiscal.${extension}`);
 
       const response = await api.post<{ id: number }>("/api/tickets/credito/", formData);
 
@@ -141,6 +143,7 @@ export default function CriarTicketAcumuloScreen() {
         {
           text: "OK",
           onPress: () => {
+            clearNotaFiscalCapture(photo.id);
             router.replace("/(tabs)/transacoes");
             router.push(`/ticket/acumulo/${response.id}`);
           },
@@ -164,6 +167,11 @@ export default function CriarTicketAcumuloScreen() {
       }
       Alert.alert("Erro", message);
     } finally {
+      try {
+        attachment?.dispose();
+      } catch (cleanupError) {
+        console.warn("Não foi possível remover a foto temporária:", cleanupError);
+      }
       setSubmitting(false);
     }
   };

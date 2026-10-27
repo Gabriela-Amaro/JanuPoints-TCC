@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BackButton } from "../../components/Buttons/Back";
 import { colors } from "../../constants/Colors";
 import { api, BASE_URL } from "../../services/api";
+import { saveNotaFiscalCapture } from "../../services/notaFiscalCapture";
 import type { Estabelecimento, Produto } from "../../types";
 import { styles } from "../../styles/screens/estabelecimento/styles";
 
@@ -70,6 +71,7 @@ export default function EstabelecimentoScreen() {
 
   const [loading, setLoading] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [captureId, setCaptureId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
   const handlePontuar = async () => {
@@ -87,10 +89,17 @@ export default function EstabelecimentoScreen() {
         mediaTypes: ["images"],
         quality: 0.8,
         allowsEditing: false,
+        base64: true,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setCapturedImage(result.assets[0].uri);
+        const asset = result.assets[0];
+        if (!asset.base64) {
+          throw new Error("A câmera não retornou os dados da foto.");
+        }
+        const photo = saveNotaFiscalCapture(asset.base64, asset.mimeType || "image/jpeg");
+        setCapturedImage(photo.uri);
+        setCaptureId(photo.id);
         setShowPreview(true);
       }
     } catch (err) {
@@ -266,7 +275,7 @@ export default function EstabelecimentoScreen() {
                 router.push({
                   pathname: "/ticket/acumulo/criar",
                   params: {
-                    imageUri: capturedImage || "",
+                    captureId: captureId || "",
                     establishmentId: id,
                     establishmentName: estabelecimento.nome,
                   },

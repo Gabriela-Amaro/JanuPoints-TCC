@@ -7,7 +7,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useTransacoes } from "../../../hooks/useTransacoes";
 import { colors } from "../../../constants/Colors";
 import { BASE_URL } from "../../../services/api";
-import { styles } from "./styles";
+import { styles } from "../../../styles/screens/(tabs)/transacoes/styles";
 import type { Transacao } from "../../../types";
 
 type FilterTab = "todos" | "pendentes" | "finalizados";

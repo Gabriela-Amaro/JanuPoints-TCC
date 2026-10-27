@@ -13,7 +13,7 @@ import { BackButton } from "../../components/Buttons/Back";
 import { colors } from "../../constants/Colors";
 import { api, BASE_URL } from "../../services/api";
 import type { Produto } from "../../types";
-import { styles } from "./styles";
+import { styles } from "../../styles/screens/produto/styles";
 
 export default function ProdutoDetalheScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

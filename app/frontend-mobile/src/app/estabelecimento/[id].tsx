@@ -13,13 +13,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Carousel from "react-native-reanimated-carousel";
+import { Carousel } from "react-native-reanimated-carousel";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BackButton } from "../../components/Buttons/Back";
 import { colors } from "../../constants/Colors";
 import { api, BASE_URL } from "../../services/api";
 import type { Estabelecimento, Produto } from "../../types";
-import { styles } from "./styles";
+import { styles } from "../../styles/screens/estabelecimento/styles";
 
 
 
@@ -84,7 +84,7 @@ export default function EstabelecimentoScreen() {
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         quality: 0.8,
         allowsEditing: false,
       });
@@ -164,11 +164,10 @@ export default function EstabelecimentoScreen() {
           {bannerImages.length > 0 ? (
             <Carousel
               loop
-              autoPlay={bannerImages.length > 1}
-              autoPlayInterval={3000}
+              autoplay={bannerImages.length > 1}
+              autoplayInterval={3000}
               data={bannerImages}
-              width={SCREEN_WIDTH}
-              height={bannerHeight}
+              style={{ width: SCREEN_WIDTH, height: bannerHeight }}
               renderItem={({ item }) => (
                 <Image
                   source={{ uri: item }}

@@ -11,7 +11,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { api, formatErrorMessage } from "../../services/api";
 import { maskCpf, maskPhone } from "../../utils/masks";
-import { styles } from "./styles";
+import { styles } from "../../styles/screens/conta/styles";
 
 export default function ContaScreen() {
   const { user, refreshUser } = useAuth();

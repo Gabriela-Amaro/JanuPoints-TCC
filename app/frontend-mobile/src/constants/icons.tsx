@@ -1,4 +1,5 @@
 import { HandCoins, House, ReceiptText, Search, User } from "lucide-react-native";
+import type { ColorValue } from "react-native";
 
 // Cria um mapa dos ícones disponíveis no seu app
 const iconMap = {
@@ -13,7 +14,7 @@ export type IconName = keyof typeof iconMap;
 
 interface IconProps {
   name: IconName;
-  color?: string;
+  color?: ColorValue;
   size?: number;
 }
 

@@ -15,7 +15,7 @@ import { ProfileHeader } from "../../components/ProfileHeader";
 import { useToast } from "../../contexts/ToastContext";
 import { api, formatErrorMessage } from "../../services/api";
 import { colors } from "../../constants/Colors";
-import { styles } from "./styles";
+import { styles } from "../../styles/screens/seguranca/styles";
 
 export default function SegurancaScreen() {
   const router = useRouter();

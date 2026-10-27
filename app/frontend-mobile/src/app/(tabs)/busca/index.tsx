@@ -6,7 +6,7 @@ import { ScreenContainer } from "../../../components/ScreenContainer/tabs/Screen
 import { colors } from "../../../constants/Colors";
 import Icon from "../../../constants/icons";
 import { useEstabelecimentos } from "../../../hooks/useEstabelecimentos";
-import { styles } from "./styles";
+import { styles } from "../../../styles/screens/(tabs)/busca/styles";
 
 /** Busca acadêmica limitada aos restaurantes parceiros. */
 export default function Busca() {

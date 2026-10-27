@@ -19,7 +19,7 @@ import { TicketHeader } from "../../../components/TicketDetail/TicketHeader";
 import { colors } from "../../../constants/Colors";
 import { api, ApiError, BASE_URL } from "../../../services/api";
 import type { Estabelecimento } from "../../../types";
-import { styles } from "./criar_styles";
+import { styles } from "../../../styles/screens/ticket/acumulo/criar_styles";
 
 // Helper formatador de data DD/MM/AAAA
 function formatDateInput(text: string): string {

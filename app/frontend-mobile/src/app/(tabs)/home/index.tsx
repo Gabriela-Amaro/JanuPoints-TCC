@@ -7,7 +7,7 @@ import { RefreshableScrollView } from "../../../components/RefreshableScrollView
 import { useAuth } from "../../../contexts/AuthContext";
 import { useEstabelecimentos } from "../../../hooks/useEstabelecimentos";
 import { colors } from "../../../constants/Colors";
-import { styles } from "./styles";
+import { styles } from "../../../styles/screens/(tabs)/home/styles";
 
 /** Tela inicial do recorte acadêmico: saldo e estabelecimentos parceiros. */
 export default function Home() {

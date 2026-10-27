@@ -5,7 +5,7 @@ import { ChevronRight, LogOut, Shield, User } from "lucide-react-native";
 import { ScreenContainer } from "../../../components/ScreenContainer/tabs/ScreenContainer";
 import { useAuth } from "../../../contexts/AuthContext";
 import { colors } from "../../../constants/Colors";
-import { styles } from "./styles";
+import { styles } from "../../../styles/screens/(tabs)/perfil/styles";
 
 /** Perfil mínimo: identificação do participante e saída da aplicação. */
 export default function Perfil() {

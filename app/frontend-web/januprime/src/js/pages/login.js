@@ -9,7 +9,7 @@ export function getLoginContent() {
       <div class="auth-card auth-fade-in">
         <div class="card-body">
               <div class="text-center mb-4">
-                <img src="/assets/images/logo.svg" alt="JanuPoints" width="60" height="60" class="mb-3">
+                <img src="/assets/images/logo.svg" alt="JanuPoints" width="60" height="60" class="mb-3" style="border-radius: 12px;">
                 <h2 class="text-gradient mb-2">Bem-vindo de volta!</h2>
                 <p class="text-muted">Acesse o painel do seu estabelecimento parceiro</p>
               </div>

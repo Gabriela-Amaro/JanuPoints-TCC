@@ -36,6 +36,8 @@ function RootNavigator() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="+not-found" />
       {/* Grupo de autenticação */}
       <Stack.Screen name="(auth)" />
 

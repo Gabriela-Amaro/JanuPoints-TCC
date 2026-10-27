@@ -1,0 +1,126 @@
+{
+  "tool": "image_gen (ferramenta integrada)",
+  "format": "JPEG 768×768",
+  "images": [
+    {
+      "file": "produtos/padaria-cafe-com-pao-na-chapa.jpg",
+      "product": "Café com Pão na Chapa",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Café com Pão na Chapa. Subject: one small cup of black espresso and a Brazilian bread roll sliced in half, buttered and toasted on a griddle, served on a small plate. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/padaria-fatia-de-bolo-de-cenoura.jpg",
+      "product": "Fatia de Bolo de Cenoura",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Fatia de Bolo de Cenoura. Subject: a single triangular slice of Brazilian orange carrot cake with dark chocolate icing, on a white dessert plate. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/padaria-cesta-de-paes-de-queijo.jpg",
+      "product": "Cesta de Pães de Queijo",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Cesta de Pães de Queijo. Subject: a small wicker basket containing eight golden Brazilian pão de queijo cheese bread balls, lined with a linen napkin. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/padaria-cesta-de-cafe-da-manha.jpg",
+      "product": "Cesta de Café da Manhã",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Cesta de Café da Manhã. Subject: a generous wicker breakfast basket containing bread rolls, croissants, fruit, a small glass jar of jam and cheese, with orange juice and coffee beside it. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/restaurante-marmita-executiva.jpg",
+      "product": "Marmita Executiva",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Marmita Executiva. Subject: an open rectangular takeaway lunch container filled with white rice, black beans, grilled beef strips, sautéed vegetables and salad, Brazilian marmita. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/restaurante-pudim-de-leite.jpg",
+      "product": "Pudim de Leite",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Pudim de Leite. Subject: a single generous slice of smooth Brazilian condensed milk flan with amber caramel sauce on a small white plate. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/restaurante-prato-feito-com-frango.jpg",
+      "product": "Prato Feito com Frango",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Prato Feito com Frango. Subject: a round ceramic lunch plate with a grilled chicken breast, white rice, black beans and a fresh lettuce tomato salad, Brazilian prato feito. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/restaurante-almoco-completo.jpg",
+      "product": "Almoço Completo",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Almoço Completo. Subject: a full Brazilian lunch set: ceramic plate of rice, beans, grilled beef steak and salad, a glass of fresh orange juice and a small caramel flan dessert. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/hamburgueria-cheeseburger-artesanal.jpg",
+      "product": "Cheeseburger Artesanal",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Cheeseburger Artesanal. Subject: one artisan cheeseburger with a single grilled beef patty, melted cheddar, lettuce and tomato in a golden sesame bun, served alone on a white plate, no fries. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/hamburgueria-porcao-de-batata-frita.jpg",
+      "product": "Porção de Batata Frita",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Porção de Batata Frita. Subject: one paper lined metal basket overflowing with crispy golden french fries, a tiny dipping bowl of ketchup beside it, no burger. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/hamburgueria-combo-brasa-com-batatas.jpg",
+      "product": "Combo Brasa com Batatas",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Combo Brasa com Batatas. Subject: a complete burger meal on a wooden tray: artisan beef cheeseburger in sesame bun, a generous serving of golden french fries and a cold unbranded glass of cola. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/hamburgueria-hamburguer-duplo.jpg",
+      "product": "Hambúrguer Duplo",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Hambúrguer Duplo. Subject: one tall double cheeseburger with exactly two thick grilled beef patties and two layers of melted cheddar, pickles and onion, glossy brioche bun, no fries. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/pizzaria-pizza-margherita-individual.jpg",
+      "product": "Pizza Margherita Individual",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Pizza Margherita Individual. Subject: one small personal size Neapolitan margherita pizza with tomato sauce, fresh mozzarella and basil, thin puffy crust, on a small ceramic plate. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/pizzaria-fatia-de-pizza-margherita.jpg",
+      "product": "Fatia de Pizza Margherita",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Fatia de Pizza Margherita. Subject: one isolated large triangular slice of margherita pizza with melted mozzarella, tomato sauce and a basil leaf, on a white plate, no whole pizza. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/pizzaria-pizza-margherita-familia.jpg",
+      "product": "Pizza Margherita Família",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Pizza Margherita Família. Subject: one large family size margherita pizza cut into eight slices with fresh mozzarella, tomato sauce and basil, on a broad wooden serving board. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/pizzaria-pizza-extra-queijo.jpg",
+      "product": "Pizza Extra Queijo",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Pizza Extra Queijo. Subject: a whole rich four cheese pizza with abundant melted mozzarella, parmesan, provolone and creamy cheese, golden blistered surface, on a dark round pizza pan, no basil. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/cafeteria-cappuccino-da-casa.jpg",
+      "product": "Cappuccino da Casa",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Cappuccino da Casa. Subject: a small elegant 180 ml white ceramic cup of cappuccino with a delicate rosetta latte art and fine cocoa dusting on the foam, on a saucer, no pastry. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/cafeteria-croissant-amanteigado.jpg",
+      "product": "Croissant Amanteigado",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Croissant Amanteigado. Subject: one large golden butter croissant with visible flaky layers, on a simple cream ceramic plate, no coffee. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/cafeteria-combo-cappuccino-e-croissant.jpg",
+      "product": "Combo Cappuccino e Croissant",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Combo Cappuccino e Croissant. Subject: a small cappuccino with heart latte art in a cream ceramic cup on a saucer beside one flaky golden butter croissant on a separate small plate. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/cafeteria-cappuccino-grande.jpg",
+      "product": "Cappuccino Grande",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Cappuccino Grande. Subject: a large tall 400 ml clear glass mug of cappuccino with thick milk foam and a light cinnamon dusting, coffee milk layers visible through glass, no pastry. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/sorveteria-acai-com-banana-e-granola.jpg",
+      "product": "Açaí com Banana e Granola",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Açaí com Banana e Granola. Subject: a clear glass bowl of thick dark purple Brazilian açaí topped only with sliced banana and golden granola, no strawberries. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/sorveteria-taca-com-duas-bolas-de-sorvete.jpg",
+      "product": "Taça com Duas Bolas de Sorvete",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Taça com Duas Bolas de Sorvete. Subject: a small clear pedestal dessert cup containing exactly two scoops of ice cream, one vanilla and one chocolate, no toppings. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/sorveteria-acai-com-morango.jpg",
+      "product": "Açaí com Morango",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Açaí com Morango. Subject: a round clear bowl of thick dark purple Brazilian açaí generously topped with fresh sliced red strawberries and a light condensed milk drizzle, no banana. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    },
+    {
+      "file": "produtos/sorveteria-taca-especial-de-verao.jpg",
+      "product": "Taça Especial de Verão",
+      "prompt": "Use case: product-mockup. Asset type: individual product photograph for a Brazilian food rewards catalog. Product: Taça Especial de Verão. Subject: a tall clear sundae glass with three colorful scoops of strawberry vanilla and chocolate ice cream, whipped cream, chocolate sauce, a wafer and a red cherry on top. Natural appetizing realistic food photography, warm soft daylight, neutral cream tabletop, subtle background bokeh. Square image, centered subject fully visible, close three quarter angle. Only the named product and its specified accompaniments. No people, no lettering, no logo, no watermark."
+    }
+  ]
+}

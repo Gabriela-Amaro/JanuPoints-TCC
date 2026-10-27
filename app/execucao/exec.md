@@ -66,6 +66,22 @@ http://localhost:8000/api/
 docker compose exec app python manage.py migrate
 ```
 
+A carga só executa com `DJANGO_ENV=development`. Cria 6 estabelecimentos do ramo alimentício, 24 produtos, 6 gerentes, 6 atendentes, 8 clientes e 1 superusuário. Inclui 73 tickets de crédito e 30 resgates em todos os status, com saldos compatíveis com as regras de pontos. Há produtos pausados, uma sorveteria inativa, uma cliente com poucos pontos e um cliente sem histórico.
+
+As imagens ilustrativas dos estabelecimentos estão versionadas em `core/seed_assets` e as 24 fotos individuais dos produtos em `core/seed_assets/produtos`. O comando copia as imagens para `media` automaticamente. Os comprovantes fictícios são gerados localmente, com número, data, CNPJ e valor correspondentes ao ticket; não há downloads externos.
+
+A senha inicial das contas novas é `Janu@2026`. Todos os logins de demonstração estão em [Acessos de teste](../../docs/acessos_teste.md). O relatório de **todos os usuários do banco** é gerado em `app/backend/app/ACESSOS_TESTE.local.md` (no container, `/app/ACESSOS_TESTE.local.md`), ignorado pelo Git. Senhas preexistentes são preservadas; quando não correspondem à senha de teste, o relatório indica que não podem ser recuperadas.
+
+Para escolher outro destino dentro do container:
+
+```bash
+docker compose exec app python manage.py popular_banco --arquivo-logins /app/acessos-local.md
+```
+
+Repetir o comando atualiza o catálogo demonstrativo, mas preserva as senhas, os status e as datas dos tickets existentes, sem duplicar registros ou aplicar pontos novamente. A farmácia e a livraria do seed antigo são convertidas em hamburgueria e pizzaria, com atualização dos produtos de demonstração e preservação de IDs, funcionários e tickets. Outros registros não são removidos.
+
+Para aplicar migrações e popular com um único comando, use `make seed`.
+
 ### Criar superusuário
 
 ```bash
@@ -119,6 +135,7 @@ A partir de `app/backend`:
 ```bash
 make migration
 make migrate
+make seed
 make superuser
 make bash
 make fmt
@@ -132,6 +149,7 @@ Correspondências principais:
 
 - `migration`: cria migrações.
 - `migrate`: aplica migrações.
+- `seed`: aplica migrações e preenche o banco com os dados de teste.
 - `superuser`: cria usuário administrativo.
 - `bash`: abre o shell do container.
 - `fmt`: executa o Black.

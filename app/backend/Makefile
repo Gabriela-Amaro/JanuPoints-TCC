@@ -29,3 +29,8 @@ build:
 
 flushtokens:
 	$(APP) python manage.py flushexpiredtokens
+
+.PHONY: seed
+seed:
+	$(APP) python manage.py migrate
+	$(APP) python manage.py popular_banco

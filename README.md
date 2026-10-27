@@ -171,7 +171,9 @@ Para popular o banco de dados com dados de demonstração (estabelecimentos, usu
 docker compose exec app python manage.py popular_banco
 ```
 
-Os dados de login dos usuários criados serão exibidos ao final do comando. A senha padrão de todos os usuários é `Janu@2026`.
+A carga inclui 6 estabelecimentos alimentícios, 24 produtos com imagens, 12 funcionários (gerentes e atendentes), 8 clientes, 1 superusuário, 73 tickets de crédito e 30 resgates. Pode ser repetida sem duplicar tickets nem reaplicar pontos.
+
+Consulte os [acessos de teste](docs/acessos_teste.md). A senha inicial das contas novas é `Janu@2026`. O comando também gera `app/backend/app/ACESSOS_TESTE.local.md` com todos os usuários do banco, incluindo os preexistentes, cujas senhas são preservadas. Para aplicar as migrações e popular em uma etapa, execute `make seed` em `app/backend`.
 
 A API ficará disponível em `http://localhost:8000`.
 

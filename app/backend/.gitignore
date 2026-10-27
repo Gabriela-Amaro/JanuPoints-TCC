@@ -250,3 +250,5 @@ db.sqlite3
 create_tickets.py
 cumpom-fiscal.jpg
 response.txt
+# Relatório local com acessos do banco de desenvolvimento
+/app/ACESSOS_TESTE.local.md

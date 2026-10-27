@@ -1,597 +1,429 @@
-"""
-Comando para popular o banco de dados com dados realistas de seed.
-Respeita todas as regras de negócio do JanuPoints.
-"""
+"""Carga alimentar de demonstração, repetível e independente de serviços externos."""
 
-import os
-import shutil
-import uuid
 from datetime import timedelta
-from decimal import Decimal
+from decimal import Decimal, ROUND_UP
 from pathlib import Path
+import shutil
+from unicodedata import normalize
 
-from django.core.management.base import BaseCommand
-from django.conf import settings
-from django.db import transaction
-from django.utils import timezone
 from constance import config
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
+from django.db.models import F
+from django.utils import timezone
+from django.utils.text import slugify
+from PIL import Image, ImageDraw, ImageFont
 
-from usuarios.models.usuario_models import Usuario
-from usuarios.models.cliente_models import Cliente
-from usuarios.models.administrador_models import Administrador
+from core.seed_data import (
+    ATENDENTES,
+    CLIENTES,
+    DOMINIO,
+    ESTABELECIMENTOS,
+    GERENTES,
+    LEGADO,
+    PRODUTOS_LEGADOS,
+    SENHA_PADRAO,
+    cnpj_teste,
+    cpf_teste,
+)
 from estabelecimentos.models import Estabelecimento
 from produtos.models import Produto
 from tickets.models import TicketCredito, TicketDebito
+from usuarios.models import Administrador, Cliente, Usuario
 
-
-# Diretório com as imagens de seed (dentro de media/)
-SEED_DIR = Path(settings.MEDIA_ROOT) / "seed_images"
-
-
-def _copiar_imagem(nome_arquivo, subpasta_destino):
-    """
-    Copia uma imagem de seed_images/ para a subpasta de upload (logotipos/, produtos/, etc.)
-    e retorna o caminho relativo ao MEDIA_ROOT que será salvo no banco.
-    """
-    origem = SEED_DIR / nome_arquivo
-    if not origem.exists():
-        return ""
-
-    destino_dir = Path(settings.MEDIA_ROOT) / subpasta_destino
-    destino_dir.mkdir(parents=True, exist_ok=True)
-    destino = destino_dir / nome_arquivo
-    shutil.copy2(str(origem), str(destino))
-    # Retorna o caminho relativo que o Django espera (ex: "logotipos/logo_padaria.jpg")
-    return f"{subpasta_destino}/{nome_arquivo}"
+ASSETS = Path(__file__).resolve().parents[2] / "seed_assets"
 
 
 class Command(BaseCommand):
-    help = "Popula o banco de dados com dados realistas de seed (com imagens)."
+    help = "Cria dados alimentícios de teste, imagens e arquivo de acessos sem duplicar tickets."
 
-    SENHA_PADRAO = "Janu@2026"
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--arquivo-logins",
+            type=Path,
+            default=Path(settings.BASE_DIR) / "ACESSOS_TESTE.local.md",
+            help="Destino do relatório de todos os usuários (padrão: /app/ACESSOS_TESTE.local.md).",
+        )
 
     def handle(self, *args, **options):
-        self.stdout.write("Iniciando a população do banco de dados...\n")
-
-        with transaction.atomic():
-            estabelecimentos = self._criar_estabelecimentos()
-            admins = self._criar_administradores(estabelecimentos)
-            clientes = self._criar_clientes()
-            produtos = self._criar_produtos(estabelecimentos)
-            self._criar_tickets_credito(clientes, estabelecimentos)
-            self._criar_tickets_debito(clientes, produtos)
-
-        self.stdout.write(self.style.SUCCESS("\n✅ Banco de dados populado com sucesso!"))
-        self._imprimir_resumo()
-
-    # ------------------------------------------------------------------ #
-    # Estabelecimentos
-    # ------------------------------------------------------------------ #
-    def _criar_estabelecimentos(self):
-        dados = [
-            {
-                "nome": "Padaria Pão Dourado",
-                "endereco": "Rua das Flores, 123 - Centro, São Paulo/SP",
-                "telefone": "+5511999001001",
-                "descricao": "Padaria artesanal com pães frescos todos os dias.",
-                "cnpj": "11.222.333/0001-81",
-                "horario_funcionamento": {
-                    "segunda": "06:00-20:00",
-                    "terca": "06:00-20:00",
-                    "quarta": "06:00-20:00",
-                    "quinta": "06:00-20:00",
-                    "sexta": "06:00-20:00",
-                    "sabado": "06:00-14:00",
-                    "domingo": "Fechado",
-                },
-                "ativo": True,
-                "logotipo_seed": "logo_padaria.jpg",
-            },
-            {
-                "nome": "Restaurante Sabor da Terra",
-                "endereco": "Av. Paulista, 1500 - Bela Vista, São Paulo/SP",
-                "telefone": "+5511999002002",
-                "descricao": "Comida caseira brasileira com ingredientes frescos da região.",
-                "cnpj": "44.555.666/0001-72",
-                "horario_funcionamento": {
-                    "segunda": "11:00-15:00",
-                    "terca": "11:00-15:00",
-                    "quarta": "11:00-15:00",
-                    "quinta": "11:00-15:00",
-                    "sexta": "11:00-15:00 / 18:00-22:00",
-                    "sabado": "11:00-16:00",
-                    "domingo": "Fechado",
-                },
-                "ativo": True,
-                "logotipo_seed": "logo_restaurante.jpg",
-            },
-            {
-                "nome": "Farmácia VidaSaúde",
-                "endereco": "Rua Augusta, 800 - Consolação, São Paulo/SP",
-                "telefone": "+5511999003003",
-                "descricao": "Medicamentos, cosméticos e produtos de bem-estar.",
-                "cnpj": "77.888.999/0001-63",
-                "horario_funcionamento": {
-                    "segunda": "07:00-22:00",
-                    "terca": "07:00-22:00",
-                    "quarta": "07:00-22:00",
-                    "quinta": "07:00-22:00",
-                    "sexta": "07:00-22:00",
-                    "sabado": "08:00-18:00",
-                    "domingo": "08:00-14:00",
-                },
-                "ativo": True,
-                "logotipo_seed": "logo_farmacia.jpg",
-            },
-            {
-                "nome": "Livraria Cultura Viva",
-                "endereco": "Rua Oscar Freire, 350 - Jardins, São Paulo/SP",
-                "telefone": "+5511999004004",
-                "descricao": "Livros, papelaria e espaço cultural.",
-                "cnpj": "12.345.678/0001-95",
-                "horario_funcionamento": {
-                    "segunda": "09:00-21:00",
-                    "terca": "09:00-21:00",
-                    "quarta": "09:00-21:00",
-                    "quinta": "09:00-21:00",
-                    "sexta": "09:00-21:00",
-                    "sabado": "10:00-18:00",
-                    "domingo": "Fechado",
-                },
-                "ativo": False,  # Estabelecimento INATIVO para demonstrar a regra
-                "logotipo_seed": "logo_livraria.png",
-            },
-        ]
-
-        estabelecimentos = []
-        for d in dados:
-            logotipo_seed = d.pop("logotipo_seed")
-            logotipo_path = _copiar_imagem(logotipo_seed, "logotipos")
-
-            obj, created = Estabelecimento.objects.get_or_create(
-                cnpj=d["cnpj"],
-                defaults={**d, "logotipo": logotipo_path},
+        if settings.ENV != "development":
+            raise CommandError("Dados de teste exigem DJANGO_ENV=development.")
+        self.taxa = Decimal(str(config.PONTOS_POR_REAL_GASTO))
+        cashback = Decimal(str(config.PORCENTAGEM_CASHBACK))
+        if self.taxa <= 0 or cashback <= 0:
+            raise CommandError(
+                "PONTOS_POR_REAL_GASTO e PORCENTAGEM_CASHBACK devem ser positivos."
             )
-            # Se já existia mas não tem logotipo, atualizar
-            if not created and not obj.logotipo and logotipo_path:
-                obj.logotipo = logotipo_path
-                obj.save()
+        for dado in ESTABELECIMENTOS:
+            imagens = [Path(f"{dado['chave']}.jpg")]
+            imagens.extend(
+                Path("produtos") / f"{dado['chave']}-{slugify(nome)}.jpg"
+                for nome, _ in dado["produtos"]
+            )
+            for imagem in imagens:
+                if not (ASSETS / imagem).is_file():
+                    raise CommandError(f"Imagem de demonstração ausente: {imagem}")
+        self.agora = timezone.now()
+        self.novas_contas = set()
+        self.senhas_conhecidas = set()
+        self.novos_creditos = self.novos_debitos = 0
+        with transaction.atomic():
+            estabelecimentos, produtos = self._catalogo()
+            self._equipe(estabelecimentos)
+            clientes = self._clientes()
+            self._tickets(clientes, estabelecimentos, produtos)
+            self._relatorio(options["arquivo_logins"])
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Carga concluída: 6 estabelecimentos alimentícios, 24 produtos, "
+                f"12 funcionários, 8 clientes e 1 superusuário de demonstração.\n"
+                f"Novos registros: {len(self.novas_contas)} usuários, "
+                f"{self.novos_creditos} créditos e {self.novos_debitos} resgates.\n"
+                f"Acessos: {options['arquivo_logins']}\n"
+                f"Senha inicial dos novos usuários: {SENHA_PADRAO}"
+            )
+        )
 
-            estabelecimentos.append(obj)
-            img_status = "✓ com logo" if obj.logotipo else "✗ sem logo"
-            status = "criado" if created else "já existia"
-            self.stdout.write(f"  Estabelecimento: {obj.nome} ({status}) [{img_status}]")
+    def _imagem(self, chave, pasta, subpasta_origem=""):
+        relativo = Path(pasta) / "demo" / f"{chave}.jpg"
+        destino = Path(settings.MEDIA_ROOT) / relativo
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        if not destino.exists():
+            shutil.copyfile(ASSETS / subpasta_origem / f"{chave}.jpg", destino)
+        return relativo.as_posix()
 
-        return estabelecimentos
+    def _catalogo(self):
+        estabelecimentos, produtos = [], []
+        for i, dado in enumerate(ESTABELECIMENTOS):
+            cnpj = cnpj_teste(i + 1)
+            estabelecimento = Estabelecimento.objects.filter(cnpj=cnpj).first()
+            if estabelecimento is None and dado["chave"] in LEGADO:
+                antigo_cnpj, antigo_nome = LEGADO[dado["chave"]]
+                estabelecimento = Estabelecimento.objects.filter(
+                    cnpj=antigo_cnpj, nome=antigo_nome
+                ).first()
+            if estabelecimento is None:
+                estabelecimento = Estabelecimento(cnpj=cnpj)
+            estabelecimento.cnpj = cnpj
+            estabelecimento.nome = dado["nome"]
+            estabelecimento.endereco = dado["endereco"]
+            estabelecimento.telefone = f"+553899100{1000 + i}"
+            estabelecimento.descricao = dado["descricao"]
+            estabelecimento.ativo = dado["ativo"]
+            estabelecimento.horario_funcionamento = {
+                dia: dado["horario"]
+                for dia in ("segunda", "terca", "quarta", "quinta", "sexta", "sabado")
+            }
+            estabelecimento.horario_funcionamento["domingo"] = "Fechado"
+            estabelecimento.logotipo = self._imagem(dado["chave"], "logotipos")
+            estabelecimento.full_clean()
+            estabelecimento.save()
+            estabelecimentos.append(estabelecimento)
+            grupo = []
+            for j, (nome, preco) in enumerate(dado["produtos"]):
+                produto = Produto.objects.filter(
+                    estabelecimento=estabelecimento, nome=nome
+                ).first()
+                if produto is None and nome in PRODUTOS_LEGADOS:
+                    produto = Produto.objects.filter(
+                        estabelecimento=estabelecimento, nome=PRODUTOS_LEGADOS[nome]
+                    ).first()
+                if produto is None:
+                    produto = Produto(estabelecimento=estabelecimento)
+                produto.nome = nome
+                produto.preco = Decimal(preco)
+                produto.descricao = (
+                    f"{nome}, preparado na casa. Foto ilustrativa do produto."
+                )
+                produto.imagem = self._imagem(
+                    f"{dado['chave']}-{slugify(nome)}", "produtos", "produtos"
+                )
+                # Um produto pausado em cada estabelecimento demonstra a indisponibilidade.
+                produto.ativo = j != 3
+                produto.full_clean()
+                produto.save()  # O modelo calcula o preço em pontos com o cashback configurado.
+                grupo.append(produto)
+            produtos.append(grupo)
+        return estabelecimentos, produtos
 
-    # ------------------------------------------------------------------ #
-    # Administradores
-    # ------------------------------------------------------------------ #
-    def _criar_administradores(self, estabelecimentos):
-        dados = [
-            # Padaria - admin + super_user do estabelecimento
-            {
-                "email": "admin.padaria@janu.com",
-                "nome": "Carlos Mendes",
-                "cpf": "529.982.247-25",
+    def _usuario(self, email, tipo, plataforma=False):
+        usuario, criado = Usuario.objects.get_or_create(
+            email=email,
+            defaults={
+                "tipo_usuario": tipo,
+                "is_staff": plataforma,
+                "is_superuser": plataforma,
+            },
+        )
+        if not criado and (
+            usuario.tipo_usuario != tipo
+            or usuario.is_superuser != plataforma
+            or usuario.is_staff != plataforma
+        ):
+            raise CommandError(
+                f"Conta de demonstração em conflito: {email}. Nenhuma permissão foi alterada."
+            )
+        if criado:
+            usuario.set_password(SENHA_PADRAO)
+            usuario.save()
+            self.novas_contas.add(email)
+            self.senhas_conhecidas.add(email)
+        return usuario
+
+    def _equipe(self, estabelecimentos):
+        # Também possui perfil para acessar /me e o painel, além do Django Admin.
+        superusuario = self._usuario(
+            f"plataforma@{DOMINIO}", Usuario.TipoUsuario.ADMINISTRADOR, plataforma=True
+        )
+        perfil, _ = Administrador.objects.get_or_create(
+            usuario=superusuario,
+            defaults={
+                "nome": "Equipe JanuPoints",
+                "cpf": cpf_teste(1),
                 "estabelecimento": estabelecimentos[0],
                 "super_user": True,
             },
-            # Restaurante - admin comum
-            {
-                "email": "admin.restaurante@janu.com",
-                "nome": "Fernanda Oliveira",
-                "cpf": "418.316.658-20",
-                "estabelecimento": estabelecimentos[1],
-                "super_user": False,
-            },
-            # Farmácia - admin comum
-            {
-                "email": "admin.farmacia@janu.com",
-                "nome": "Roberto Silva",
-                "cpf": "347.066.120-40",
-                "estabelecimento": estabelecimentos[2],
-                "super_user": False,
-            },
-            # Livraria (inativa) - admin
-            {
-                "email": "admin.livraria@janu.com",
-                "nome": "Juliana Costa",
-                "cpf": "821.547.890-10",
-                "estabelecimento": estabelecimentos[3],
-                "super_user": False,
-            },
-        ]
+        )
+        for i, estabelecimento in enumerate(estabelecimentos):
+            for j, (cargo, nomes) in enumerate(
+                (("gerente", GERENTES), ("atendente", ATENDENTES))
+            ):
+                usuario = self._usuario(
+                    f"{cargo}.{ESTABELECIMENTOS[i]['chave']}@{DOMINIO}",
+                    Usuario.TipoUsuario.ADMINISTRADOR,
+                )
+                perfil, _ = Administrador.objects.get_or_create(
+                    usuario=usuario,
+                    defaults={
+                        "nome": nomes[i],
+                        "cpf": cpf_teste(10 + i * 2 + j),
+                        "estabelecimento": estabelecimento,
+                        "super_user": cargo == "gerente",
+                    },
+                )
+                if (
+                    perfil.estabelecimento_id != estabelecimento.pk
+                    or perfil.super_user != (cargo == "gerente")
+                ):
+                    raise CommandError(
+                        f"Perfil de demonstração em conflito: {usuario.email}."
+                    )
 
-        admins = []
-        for d in dados:
-            usuario, u_created = Usuario.objects.get_or_create(
-                email=d["email"],
-                defaults={
-                    "tipo_usuario": Usuario.TipoUsuario.ADMINISTRADOR,
-                },
-            )
-            if u_created:
-                usuario.set_password(self.SENHA_PADRAO)
-                usuario.save()
-
-            admin, a_created = Administrador.objects.get_or_create(
-                usuario=usuario,
-                defaults={
-                    "nome": d["nome"],
-                    "cpf": d["cpf"],
-                    "estabelecimento": d["estabelecimento"],
-                    "super_user": d["super_user"],
-                },
-            )
-            admins.append(admin)
-            status = "criado" if a_created else "já existia"
-            self.stdout.write(
-                f"  Administrador: {admin.nome} - {d['email']} ({status})"
-            )
-
-        return admins
-
-    # ------------------------------------------------------------------ #
-    # Clientes
-    # ------------------------------------------------------------------ #
-    def _criar_clientes(self):
-        dados = [
-            {
-                "email": "maria@email.com",
-                "nome": "Maria Santos",
-                "cpf": "154.736.928-00",
-                "telefone": "+5511988001001",
-            },
-            {
-                "email": "joao@email.com",
-                "nome": "João Pereira",
-                "cpf": "787.613.824-04",
-                "telefone": "+5511988002002",
-            },
-            {
-                "email": "ana@email.com",
-                "nome": "Ana Lima",
-                "cpf": "327.178.560-48",
-                "telefone": "+5511988003003",
-            },
-        ]
-
+    def _clientes(self):
         clientes = []
-        for d in dados:
-            usuario, u_created = Usuario.objects.get_or_create(
-                email=d["email"],
-                defaults={
-                    "tipo_usuario": Usuario.TipoUsuario.CLIENTE,
-                },
-            )
-            if u_created:
-                usuario.set_password(self.SENHA_PADRAO)
-                usuario.save()
-
-            cliente, c_created = Cliente.objects.get_or_create(
+        for i, (chave, nome) in enumerate(CLIENTES):
+            usuario = self._usuario(f"{chave}@{DOMINIO}", Usuario.TipoUsuario.CLIENTE)
+            cliente, _ = Cliente.objects.get_or_create(
                 usuario=usuario,
                 defaults={
-                    "nome": d["nome"],
-                    "cpf": d["cpf"],
-                    "telefone": d["telefone"],
+                    "nome": nome,
+                    "cpf": cpf_teste(100 + i),
+                    "telefone": f"+553899200{1000 + i}",
                     "pontos": 0,
                 },
             )
             clientes.append(cliente)
-            status = "criado" if c_created else "já existia"
-            self.stdout.write(
-                f"  Cliente: {cliente.nome} - {d['email']} ({status})"
-            )
-
         return clientes
 
-    # ------------------------------------------------------------------ #
-    # Produtos (pontos calculados automaticamente pelo model.save)
-    # ------------------------------------------------------------------ #
-    def _criar_produtos(self, estabelecimentos):
-        padaria, restaurante, farmacia, livraria = estabelecimentos
-
-        dados = [
-            # Padaria Pão Dourado
-            {"estabelecimento": padaria, "nome": "Café com Pão na Chapa", "descricao": "Combo café expresso + pão na chapa com manteiga.", "preco": Decimal("12.00"), "ativo": True, "imagem_seed": "produto_cafe_pao.jpg"},
-            {"estabelecimento": padaria, "nome": "Bolo de Cenoura Fatia", "descricao": "Fatia generosa de bolo de cenoura com cobertura de chocolate.", "preco": Decimal("9.50"), "ativo": True, "imagem_seed": "produto_bolo_cenoura.png"},
-            {"estabelecimento": padaria, "nome": "Kit Festa 50 Salgados", "descricao": "50 salgados variados para festas.", "preco": Decimal("75.00"), "ativo": True, "imagem_seed": "produto_kit_festa.jpg"},
-            {"estabelecimento": padaria, "nome": "Pão de Queijo (pacote 10 un.)", "descricao": "Pacote com 10 pães de queijo artesanais.", "preco": Decimal("18.00"), "ativo": False, "imagem_seed": "produto_pao_queijo.png"},
-            # Restaurante Sabor da Terra
-            {"estabelecimento": restaurante, "nome": "Marmita Executiva", "descricao": "Arroz, feijão, salada, proteína do dia e acompanhamento.", "preco": Decimal("22.00"), "ativo": True, "imagem_seed": "produto_marmita.jpg"},
-            {"estabelecimento": restaurante, "nome": "Sobremesa do Dia", "descricao": "Pudim, mousse ou fruta da estação.", "preco": Decimal("8.00"), "ativo": True, "imagem_seed": "produto_sobremesa.jpg"},
-            {"estabelecimento": restaurante, "nome": "Combo Almoço Completo", "descricao": "Marmita executiva + suco natural + sobremesa.", "preco": Decimal("32.00"), "ativo": True, "imagem_seed": "produto_combo_almoco.png"},
-            # Farmácia VidaSaúde
-            {"estabelecimento": farmacia, "nome": "Kit Protetor Solar", "descricao": "Protetor solar FPS 50 + hidratante pós-sol.", "preco": Decimal("45.00"), "ativo": True, "imagem_seed": "produto_protetor_solar.png"},
-            {"estabelecimento": farmacia, "nome": "Vitamina C 30 comprimidos", "descricao": "Vitamina C efervescente, 1g, caixa com 30.", "preco": Decimal("25.00"), "ativo": True, "imagem_seed": "produto_vitamina_c.jpg"},
-            # Livraria (inativa)
-            {"estabelecimento": livraria, "nome": "Vale-livro R$30", "descricao": "Vale para compra de livros no valor de R$ 30.", "preco": Decimal("30.00"), "ativo": True, "imagem_seed": "produto_vale_livro.jpg"},
-        ]
-
-        produtos = []
-        for d in dados:
-            imagem_seed = d.pop("imagem_seed")
-            imagem_path = _copiar_imagem(imagem_seed, "produtos")
-
-            obj, created = Produto.objects.get_or_create(
-                estabelecimento=d["estabelecimento"],
-                nome=d["nome"],
-                defaults={
-                    "descricao": d["descricao"],
-                    "preco": d["preco"],
-                    "ativo": d["ativo"],
-                    "imagem": imagem_path,
-                },
-            )
-            # Se já existia mas não tem imagem, atualizar
-            if not created and not obj.imagem and imagem_path:
-                obj.imagem = imagem_path
-                obj.save()
-            elif created:
-                # Forçar save para calcular pontos
-                obj.save()
-
-            produtos.append(obj)
-            img_status = "✓ com img" if obj.imagem else "✗ sem img"
-            status = "criado" if created else "já existia"
-            self.stdout.write(
-                f"  Produto: {obj.nome} | {obj.estabelecimento.nome} | "
-                f"R${obj.preco} → {obj.pontos}pts ({status}) [{img_status}]"
-            )
-
-        return produtos
-
-    # ------------------------------------------------------------------ #
-    # Tickets de Crédito
-    # ------------------------------------------------------------------ #
-    def _criar_tickets_credito(self, clientes, estabelecimentos):
-        """
-        Cria tickets de crédito em vários status.
-        Ao aprovar, credita os pontos ao cliente (regra RF4.6).
-        """
-        padaria, restaurante, farmacia, _livraria = estabelecimentos
-        maria, joao, ana = clientes
-        agora = timezone.now()
-        pontos_por_real = config.PONTOS_POR_REAL_GASTO
-
-        # Imagem do cupom fiscal usada nos tickets
-        cupom_path = _copiar_imagem("cupom_fiscal.jpg", "notas_fiscais")
-
-        tickets_data = [
-            # MARIA - 2 tickets aprovados (CONCLUIDO) → recebe pontos
-            {
-                "cliente": maria, "estabelecimento": padaria,
-                "preco": Decimal("85.50"), "data_nota": agora - timedelta(days=10),
-                "numero_nota": "NF-001", "status_final": "CONCLUIDO",
-            },
-            {
-                "cliente": maria, "estabelecimento": restaurante,
-                "preco": Decimal("120.00"), "data_nota": agora - timedelta(days=5),
-                "numero_nota": "NF-002", "status_final": "CONCLUIDO",
-            },
-            # MARIA - 1 ticket aberto (pendente de análise)
-            {
-                "cliente": maria, "estabelecimento": farmacia,
-                "preco": Decimal("200.00"), "data_nota": agora - timedelta(days=1),
-                "numero_nota": "NF-003", "status_final": "ABERTO",
-            },
-            # JOAO - 1 ticket aprovado → recebe pontos
-            {
-                "cliente": joao, "estabelecimento": padaria,
-                "preco": Decimal("50.00"), "data_nota": agora - timedelta(days=15),
-                "numero_nota": "NF-004", "status_final": "CONCLUIDO",
-            },
-            # JOAO - 1 ticket recusado (sem pontos)
-            {
-                "cliente": joao, "estabelecimento": restaurante,
-                "preco": Decimal("35.00"), "data_nota": agora - timedelta(days=8),
-                "numero_nota": "NF-005", "status_final": "RECUSADO",
-                "observacao": "Nota fiscal ilegível.",
-            },
-            # JOAO - 1 ticket aberto
-            {
-                "cliente": joao, "estabelecimento": farmacia,
-                "preco": Decimal("90.00"), "data_nota": agora - timedelta(days=2),
-                "numero_nota": "NF-006", "status_final": "ABERTO",
-            },
-            # ANA - 1 ticket aprovado → recebe pontos
-            {
-                "cliente": ana, "estabelecimento": restaurante,
-                "preco": Decimal("300.00"), "data_nota": agora - timedelta(days=20),
-                "numero_nota": "NF-007", "status_final": "CONCLUIDO",
-            },
-            # ANA - 1 ticket cancelado
-            {
-                "cliente": ana, "estabelecimento": padaria,
-                "preco": Decimal("15.00"), "data_nota": agora - timedelta(days=3),
-                "numero_nota": "NF-008", "status_final": "CANCELADO",
-            },
-        ]
-
-        # Dicionário para acumular pontos que serão creditados
-        pontos_a_creditar = {}
-
-        for td in tickets_data:
-            pontos = int(float(td["preco"]) * pontos_por_real)
-
-            # Verificar se o ticket já existe (evitar duplicatas por numero_nota+estabelecimento)
-            if TicketCredito.objects.filter(
-                estabelecimento=td["estabelecimento"],
-                numero_nota=td["numero_nota"],
-            ).exists():
-                self.stdout.write(
-                    f"  Ticket crédito: {td['numero_nota']} já existe. Pulando."
-                )
-                continue
-
-            ticket = TicketCredito.objects.create(
-                cliente=td["cliente"],
-                estabelecimento=td["estabelecimento"],
-                imagem=cupom_path,
-                preco=td["preco"],
-                pontos=pontos,
-                data_nota=td["data_nota"],
-                numero_nota=td["numero_nota"],
-                status=td["status_final"],
-                observacao=td.get("observacao", ""),
-            )
-
-            # Se aprovado/concluído, creditar pontos ao cliente
-            if td["status_final"] == "CONCLUIDO":
-                cliente_pk = td["cliente"].pk
-                pontos_a_creditar[cliente_pk] = (
-                    pontos_a_creditar.get(cliente_pk, 0) + pontos
-                )
-
-            img_status = "✓ com img" if ticket.imagem else "✗ sem img"
-            self.stdout.write(
-                f"  Ticket crédito: {ticket.codigo} | {td['cliente'].nome} → "
-                f"{td['estabelecimento'].nome} | R${td['preco']} = {pontos}pts | "
-                f"Status: {td['status_final']} [{img_status}]"
-            )
-
-        # Creditar pontos acumulados
-        for cliente in clientes:
-            creditos = pontos_a_creditar.get(cliente.pk, 0)
-            if creditos > 0:
-                cliente.pontos += creditos
-                cliente.save()
-                self.stdout.write(
-                    f"  → {cliente.nome}: +{creditos} pontos creditados "
-                    f"(saldo: {cliente.pontos})"
-                )
-
-    # ------------------------------------------------------------------ #
-    # Tickets de Débito
-    # ------------------------------------------------------------------ #
-    def _criar_tickets_debito(self, clientes, produtos):
-        """
-        Cria tickets de débito respeitando as regras:
-        - Produto ativo + estabelecimento ativo (RF5.2)
-        - Saldo suficiente (RF5.2)
-        - Pontos debitados na criação (RF5.3)
-        - Recusa/cancelamento devolve pontos (RF5.7, RF5.8)
-        """
-        maria, joao, ana = clientes
-
-        # Filtrar produtos ativos de estabelecimentos ativos
-        produtos_disponiveis = [
-            p for p in produtos
-            if p.ativo and p.estabelecimento.ativo
-        ]
-
-        if not produtos_disponiveis:
-            self.stdout.write(
-                self.style.WARNING("  Nenhum produto disponível para débito.")
-            )
-            return
-
-        tickets_data = [
-            # MARIA resgata "Café com Pão na Chapa" (padaria) - APROVADO
-            {
-                "cliente": maria,
-                "produto_nome": "Café com Pão na Chapa",
-                "status_final": "APROVADO",
-            },
-            # MARIA resgata "Sobremesa do Dia" (restaurante) - CONCLUIDO (entregue)
-            {
-                "cliente": maria,
-                "produto_nome": "Sobremesa do Dia",
-                "status_final": "CONCLUIDO",
-            },
-            # JOAO resgata "Bolo de Cenoura Fatia" (padaria) - ABERTO
-            {
-                "cliente": joao,
-                "produto_nome": "Bolo de Cenoura Fatia",
-                "status_final": "ABERTO",
-            },
-            # ANA resgata "Marmita Executiva" (restaurante) - RECUSADO (pontos devolvidos)
-            {
-                "cliente": ana,
-                "produto_nome": "Marmita Executiva",
-                "status_final": "RECUSADO",
-            },
-        ]
-
-        for td in tickets_data:
-            produto = next(
-                (p for p in produtos_disponiveis if p.nome == td["produto_nome"]),
-                None,
-            )
-            if not produto:
-                self.stdout.write(
-                    f"  Produto '{td['produto_nome']}' não encontrado/disponível. Pulando."
-                )
-                continue
-
-            cliente = td["cliente"]
-            pontos_custo = produto.pontos
-
-            # Verificar saldo suficiente
-            if cliente.pontos < pontos_custo:
-                self.stdout.write(
-                    f"  {cliente.nome} sem saldo para '{produto.nome}' "
-                    f"({cliente.pontos} < {pontos_custo}). Pulando."
-                )
-                continue
-
-            # Debitar pontos na criação (RF5.3)
-            cliente.pontos -= pontos_custo
-            cliente.save()
-
-            ticket = TicketDebito.objects.create(
-                cliente=cliente,
-                produto=produto,
-                pontos=pontos_custo,
-                status=td["status_final"],
-            )
-
-            # Se recusado ou cancelado, devolver pontos (RF5.7, RF5.8)
-            if td["status_final"] in ("RECUSADO", "CANCELADO"):
-                cliente.pontos += pontos_custo
-                cliente.save()
-
-            self.stdout.write(
-                f"  Ticket débito: {ticket.codigo} | {cliente.nome} → "
-                f"'{produto.nome}' | {pontos_custo}pts | "
-                f"Status: {td['status_final']} | Saldo: {cliente.pontos}"
-            )
-
-    # ------------------------------------------------------------------ #
-    # Resumo final
-    # ------------------------------------------------------------------ #
-    def _imprimir_resumo(self):
-        self.stdout.write("\n" + "=" * 60)
-        self.stdout.write("DADOS DE LOGIN DOS USUÁRIOS")
-        self.stdout.write("=" * 60)
-        self.stdout.write(f"Senha padrão para todos: {self.SENHA_PADRAO}")
-        self.stdout.write("-" * 60)
-
-        self.stdout.write("\n📋 ADMINISTRADORES:")
-        for admin in Administrador.objects.select_related(
-            "usuario", "estabelecimento"
-        ).all():
-            self.stdout.write(
-                f"  Email: {admin.usuario.email}\n"
-                f"    Nome: {admin.nome}\n"
-                f"    Estabelecimento: {admin.estabelecimento.nome}\n"
-                f"    Super user: {'Sim' if admin.super_user else 'Não'}\n"
-            )
-
-        self.stdout.write("\n👤 CLIENTES:")
-        for cliente in Cliente.objects.select_related("usuario").all():
-            self.stdout.write(
-                f"  Email: {cliente.usuario.email}\n"
-                f"    Nome: {cliente.nome}\n"
-                f"    Pontos: {cliente.pontos}\n"
-            )
-
-        self.stdout.write("-" * 60)
-        self.stdout.write(
-            f"Estabelecimentos: {Estabelecimento.objects.count()}\n"
-            f"Produtos: {Produto.objects.count()}\n"
-            f"Tickets de crédito: {TicketCredito.objects.count()}\n"
-            f"Tickets de débito: {TicketDebito.objects.count()}"
+    def _data(self, modelo, ticket, dias, processado):
+        criacao = self.agora - timedelta(days=dias)
+        atualizacao = criacao + timedelta(hours=2) if processado else criacao
+        modelo.objects.filter(pk=ticket.pk).update(
+            created_at=criacao, updated_at=atualizacao
         )
-        self.stdout.write("=" * 60)
+
+    def _cupom(self, codigo, estabelecimento, valor, data):
+        relativo = Path("notas_fiscais") / "demo" / f"{codigo}.png"
+        destino = Path(settings.MEDIA_ROOT) / relativo
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        if not destino.exists():
+            imagem = Image.new("RGB", (760, 680), "#fffdf5")
+            desenho = ImageDraw.Draw(imagem)
+            fonte = ImageFont.load_default(size=22)
+            linhas = [
+                "JANUPOINTS - DEMONSTRACAO",
+                "SEM VALOR FISCAL",
+                "-" * 44,
+                estabelecimento.nome,
+                f"CNPJ: {estabelecimento.cnpj}",
+                estabelecimento.endereco,
+                "-" * 44,
+                f"Documento: DEMO-{codigo}",
+                f"Data: {data:%d/%m/%Y %H:%M}",
+                "",
+                "Consumo de alimentos e bebidas",
+                f"TOTAL: R$ {valor:.2f}",
+                "Pagamento: PIX",
+                "-" * 44,
+                "Dados ficticios para testes do JanuPoints.",
+            ]
+            # A fonte embarcada do Pillow não inclui todos os acentos portugueses.
+            texto = (
+                normalize("NFKD", "\n".join(linhas)).encode("ascii", "ignore").decode()
+            )
+            desenho.multiline_text(
+                (28, 28), texto, fill="#262626", font=fonte, spacing=12
+            )
+            imagem.save(destino)
+        return relativo.as_posix()
+
+    def _credito(self, cliente, estabelecimento, codigo, valor, status, dias):
+        existente = TicketCredito.objects.filter(codigo=codigo).first()
+        if existente:
+            if (
+                existente.cliente_id != cliente.pk
+                or existente.estabelecimento_id != estabelecimento.pk
+            ):
+                raise CommandError(f"Código de ticket em conflito: {codigo}.")
+            return
+        pontos = int(valor * self.taxa)
+        data = self.agora - timedelta(days=dias, hours=1)
+        ticket = TicketCredito.objects.create(
+            cliente=cliente,
+            estabelecimento=estabelecimento,
+            codigo=codigo,
+            numero_nota=f"DEMO-{codigo}",
+            preco=valor,
+            pontos=pontos,
+            data_nota=data,
+            imagem=self._cupom(codigo, estabelecimento, valor, data),
+            status=status,
+            observacao={
+                "RECUSADO": "Valor informado diverge do comprovante enviado.",
+                "CANCELADO": "Solicitação cancelada pelo cliente antes da análise.",
+            }.get(status, ""),
+        )
+        self._data(TicketCredito, ticket, dias, status != "ABERTO")
+        if status == "CONCLUIDO":
+            Cliente.objects.filter(pk=cliente.pk).update(pontos=F("pontos") + pontos)
+        self.novos_creditos += 1
+
+    def _tickets(self, clientes, estabelecimentos, produtos):
+        disponiveis = [
+            min((p for p in grupo if p.ativo), key=lambda p: p.pontos)
+            for grupo in produtos
+            if grupo[0].estabelecimento.ativo
+        ]
+        estados_credito = ["CONCLUIDO"] * 8 + [
+            "ABERTO",
+            "ABERTO",
+            "RECUSADO",
+            "CANCELADO",
+        ]
+        estados_debito = ["ABERTO", "APROVADO", "CONCLUIDO", "RECUSADO", "CANCELADO"]
+        for i, cliente in enumerate(clientes[:6]):
+            # Serializa alterações no saldo e permite repetir a carga sem reaplicar movimentos.
+            cliente = Cliente.objects.select_for_update().get(pk=cliente.pk)
+            recompensas = [disponiveis[(i + j) % len(disponiveis)] for j in range(5)]
+            custo_total = sum(p.pontos for p in recompensas)
+            # Oito notas concluídas financiam os resgates e deixam saldo para novos testes.
+            valor_base = (Decimal(custo_total + 800) / self.taxa / 8).quantize(
+                Decimal("0.01"), rounding=ROUND_UP
+            )
+            for n, status in enumerate(estados_credito):
+                self._credito(
+                    cliente,
+                    estabelecimentos[(i + n) % 6],
+                    f"JPC{i:02d}{n:03d}",
+                    valor_base + Decimal(n),
+                    status,
+                    30 - n * 2,
+                )
+            for n, (produto, status) in enumerate(zip(recompensas, estados_debito)):
+                codigo = f"JPD{i:02d}{n:03d}"
+                existente = TicketDebito.objects.filter(codigo=codigo).first()
+                if existente:
+                    if (
+                        existente.cliente_id != cliente.pk
+                        or existente.produto_id != produto.pk
+                    ):
+                        raise CommandError(f"Código de ticket em conflito: {codigo}.")
+                    continue
+                cliente.refresh_from_db()
+                if cliente.pontos < produto.pontos:
+                    raise CommandError(
+                        f"Saldo insuficiente em {cliente.usuario.email}; carga revertida."
+                    )
+                ticket = TicketDebito.objects.create(
+                    cliente=cliente,
+                    produto=produto,
+                    codigo=codigo,
+                    pontos=produto.pontos,
+                    status=status,
+                    observacao={
+                        "RECUSADO": "Item indisponível no momento. Pontos devolvidos.",
+                        "CANCELADO": "Cliente desistiu do resgate. Pontos devolvidos.",
+                    }.get(status, ""),
+                )
+                if status not in ("RECUSADO", "CANCELADO"):
+                    Cliente.objects.filter(pk=cliente.pk).update(
+                        pontos=F("pontos") - produto.pontos
+                    )
+                self._data(TicketDebito, ticket, 5 - n, status != "ABERTO")
+                self.novos_debitos += 1
+        # Uma cliente com pouco saldo e um cliente novo, sem histórico.
+        self._credito(
+            clientes[6],
+            estabelecimentos[0],
+            "JPC06000",
+            Decimal("12.50"),
+            "CONCLUIDO",
+            2,
+        )
+
+    def _relatorio(self, caminho):
+        linhas = [
+            "# Acessos locais do JanuPoints",
+            "",
+            "Gerado por `python manage.py popular_banco`. Contém todos os usuários deste banco.",
+            "As senhas existentes são preservadas. Uma senha só é listada quando validada pelo hash; outras não podem ser recuperadas.",
+            "Painel: http://localhost:3000 | Django Admin: http://localhost:8000/admin/ | Clientes: app mobile",
+            "",
+            "| Email | Nome | Perfil | Estabelecimento | Ativo | Senha |",
+            "|---|---|---|---|---|---|",
+        ]
+        for usuario in Usuario.objects.select_related(
+            "administrador__estabelecimento", "cliente"
+        ).order_by("email"):
+            if hasattr(usuario, "administrador"):
+                perfil = usuario.administrador
+                nome, estabelecimento = perfil.nome, perfil.estabelecimento.nome
+                cargo = (
+                    "Superusuário"
+                    if usuario.is_superuser
+                    else "Gerente" if perfil.super_user else "Atendente"
+                )
+            elif hasattr(usuario, "cliente"):
+                nome, estabelecimento, cargo = usuario.cliente.nome, "—", "Cliente"
+            else:
+                nome, estabelecimento = "—", "—"
+                cargo = "Superusuário" if usuario.is_superuser else usuario.tipo_usuario
+            senha = (
+                SENHA_PADRAO
+                if usuario.email in self.senhas_conhecidas
+                or usuario.check_password(SENHA_PADRAO)
+                else "Preexistente; não alterada"
+            )
+            campos = [
+                usuario.email,
+                nome,
+                cargo,
+                estabelecimento,
+                "Sim" if usuario.is_active else "Não",
+                senha,
+            ]
+            linhas.append(
+                "| "
+                + " | ".join(
+                    str(c).replace("|", "\\|").replace("\n", " ") for c in campos
+                )
+                + " |"
+            )
+        try:
+            caminho.parent.mkdir(parents=True, exist_ok=True)
+            caminho.write_text("\n".join(linhas) + "\n", encoding="utf-8")
+        except OSError as erro:
+            raise CommandError(
+                f"Não foi possível gravar os acessos em {caminho}: {erro}"
+            ) from erro

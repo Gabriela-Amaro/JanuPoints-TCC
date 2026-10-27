@@ -1,4 +1,4 @@
-[Visão Geral](/README.md) | [Diagrama Entidade-Relacionamento](/docs/diagram_er.md) | [Diagrama de Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Endpoints](/docs/endpoints.md)
+[Visão Geral](../README.md) | [Diagrama Entidade-Relacionamento](../docs/diagram_er.md) | [Diagrama de Classes](../docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](../docs/requisitos.md) | [Endpoints](../docs/endpoints.md)
 
 ---
 
@@ -25,8 +25,8 @@ flowchart TD
 2. A API retorna `access` e `refresh`.
 3. O cliente armazena os tokens.
 4. As requisições protegidas enviam `Authorization: Bearer <access>`.
-5. Ao receber `401`, o aplicativo mobile tenta renovar o access token com `/api/auth/token/refresh/`.
-6. No logout, o refresh token é enviado para `/api/auth/logout/`.
+5. Ao receber `401`, o aplicativo mobile tenta renovar o access token com `/api/auth/token/refresh/` e armazena também o refresh rotacionado.
+6. No logout, o refresh token é enviado para `/api/auth/logout/`. O mobile também limpa os tokens armazenados localmente.
 
 ---
 
@@ -101,7 +101,7 @@ sequenceDiagram
     participant Banco as PostgreSQL
     participant Painel as Painel web
 
-    Cliente->>Cliente: Captura imagem da nota fiscal
+    Cliente->>Cliente: Captura imagem e preenche os dados da nota fiscal
     Cliente->>API: POST /api/tickets/credito/\n multipart/form-data
     API->>API: Valida nota e estabelecimento
     API->>Banco: Cria TicketCredito ABERTO
@@ -126,6 +126,8 @@ sequenceDiagram
     Cliente->>API: GET /api/tickets/credito/{id}/
     API-->>Cliente: Ticket e pontos calculados
 ```
+
+A captura é mantida em memória pelo serviço `notaFiscalCapture`, fora dos parâmetros de URL. O formulário recebe um `captureId`; se a captura não estiver mais disponível, o cliente precisa tirar a foto novamente. O upload usa `Blob` na web e arquivo temporário de cache via `expo-file-system` no nativo. Não há extração automática dos dados da nota: valor, número e data são preenchidos pelo cliente.
 
 ### Dados enviados
 
@@ -170,16 +172,18 @@ sequenceDiagram
     API-->>Painel: Ticket aberto
 
     Painel->>API: POST /api/tickets/debito/{id}/aprovar/
+    API->>Banco: Atualiza ticket para APROVADO
+    API-->>Painel: Pedido aprovado
+    Cliente->>API: POST /api/tickets/debito/{id}/concluir/
     API->>Banco: Atualiza ticket para CONCLUIDO
-    API-->>Painel: Pedido Aprovado
-    API-->>Cliente: Pedido Concluído
+    API-->>Cliente: Pedido entregue
 ```
 
 ### Cancelamento e recusa
 
 - O cliente pode cancelar um ticket `ABERTO`; os pontos são estornados.
 - O administrador pode recusar um ticket `ABERTO`; os pontos são estornados.
-- Um ticket só pode ser concluído quando estiver `APROVADO`.
+- Um ticket só pode ser concluído quando estiver `APROVADO`. A conclusão é realizada pela ação `concluir` da API.
 
 ---
 
@@ -195,13 +199,13 @@ O backend:
 
 1. valida o access token;
 2. localiza o estabelecimento do administrador;
-3. consulta os IDs dos tickets de crédito e débito com status `ABERTO`;
+3. consulta os IDs dos tickets de crédito e débito com status `ABERTO` e emite o primeiro resultado;
 4. compara a lista atual com a lista anterior;
 5. envia `tickets_changed` quando há alteração;
 6. envia heartbeat quando não há alteração;
 7. repete a verificação a cada dois segundos.
 
-O painel recebe o evento e recarrega os dados do dashboard.
+O painel recebe o evento e recarrega os dados do dashboard. O JWT é validado ao abrir a conexão. Sem token válido, a resposta é `401`; sem estabelecimento associado, o stream emite um evento `error` e termina.
 
 ---
 
@@ -225,6 +229,8 @@ sequenceDiagram
     Painel->>API: PATCH com logotipo, quando necessário
     API-->>Painel: Imagem atualizada
 ```
+
+Na API, atualizar o estabelecimento exige administrador associado com `super_user=True` ou superusuário da plataforma. O CNPJ é somente leitura.
 
 Campos editáveis apresentados no painel:
 

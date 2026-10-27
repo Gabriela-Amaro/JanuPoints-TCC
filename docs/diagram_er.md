@@ -1,15 +1,18 @@
-[Visão Geral](/README.md) | [Diagrama de Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md) | [Endpoints](/docs/endpoints.md)
+[Visão Geral](../README.md) | [Diagrama de Classes](../docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](../docs/requisitos.md) | [Fluxo de Requisições](../docs/fluxo_requisicao.md) | [Endpoints](../docs/endpoints.md)
 
 ---
 
 ### Diagrama Entidade-Relacionamento
 
-As entidades abaixo correspondem aos modelos ativos do backend.
+As entidades abaixo correspondem aos modelos de domínio ativos do backend. Tabelas auxiliares de autenticação, grupos, permissões, blacklist JWT e Constance são omitidas.
 
 ```mermaid
 erDiagram
     USUARIO {
         int id PK
+        string password
+        datetime last_login
+        boolean is_superuser
         string email UK
         string tipo_usuario
         boolean is_active
@@ -108,3 +111,8 @@ erDiagram
 - Um ticket de crédito referencia diretamente o estabelecimento escolhido para a nota.
 - Um ticket de débito referencia o produto resgatado; o estabelecimento é obtido por meio do produto.
 - Tickets de crédito e débito mantêm o código, status, observação e datas de criação/atualização.
+
+- `password`, `last_login` e `is_superuser` são herdados das classes de autenticação do Django; `password` armazena o hash.
+- A exclusão de usuário remove seu perfil; a exclusão de cliente remove seus tickets (`CASCADE`).
+- A exclusão de estabelecimento remove seus administradores e produtos (`CASCADE`), mas mantém tickets de crédito com referência nula (`SET_NULL`). A exclusão de produto mantém tickets de débito com referência nula (`SET_NULL`).
+- A combinação de `numero_nota` e estabelecimento é validada pelo serializer. Os pontos de crédito podem ser nulos no modelo; o fluxo de criação pela API os calcula.

@@ -1,10 +1,10 @@
-[Visão Geral](/README.md) | [Diagrama Entidade-Relacionamento](/docs/diagram_er.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md) | [Endpoints](/docs/endpoints.md)
+[Visão Geral](../README.md) | [Diagrama Entidade-Relacionamento](../docs/diagram_er.md) | [Requisitos Funcionais e Não Funcionais](../docs/requisitos.md) | [Fluxo de Requisições](../docs/fluxo_requisicao.md) | [Endpoints](../docs/endpoints.md)
 
 ---
 
 ### Diagrama de Classes
 
-O diagrama representa as classes de domínio implementadas nos modelos Django. As ações HTTP, validações de entrada e permissões pertencem às camadas de views, serializers e permissions e não são métodos das entidades.
+O diagrama representa as classes de domínio implementadas nos modelos Django, incluindo campos herdados de autenticação. Classes auxiliares do framework e tabelas de permissões não são detalhadas. As ações HTTP, validações de entrada e permissões pertencem às camadas de views, serializers e permissions e não são métodos das entidades.
 
 ```mermaid
 classDiagram
@@ -17,6 +17,7 @@ classDiagram
 
     class Usuario {
         +int id
+        +string password
         +string email
         +TipoUsuario tipo_usuario
         +bool is_active
@@ -119,12 +120,13 @@ classDiagram
 
 ### Relações e responsabilidades
 
-- `Usuario` é o modelo de autenticação e utiliza `email` como identificador.
+- `Usuario` é o modelo de autenticação e utiliza `email` como identificador. O campo `password` armazena o hash, e `is_superuser` é a permissão global; `Administrador.super_user` é uma flag do estabelecimento.
 - `Cliente` e `Administrador` são perfis vinculados a `Usuario` por relações um-para-um.
 - `Administrador` pertence a um `Estabelecimento`.
 - `Produto` pertence a um estabelecimento e calcula seu valor em pontos no método `save()`.
 - `TicketCredito` referencia o cliente e o estabelecimento escolhido para a nota fiscal.
-- `TicketDebito` referencia o cliente e o produto resgatado.
+- `TicketDebito` referencia o cliente e o produto resgatado, preservando o custo em pontos da criação.
+- As referências de tickets para estabelecimento/produto são anuláveis e usam `SET_NULL` na exclusão; as relações com cliente usam `CASCADE`.
 - Os métodos de aprovação, recusa, cancelamento e conclusão são ações HTTP implementadas nos viewsets de tickets, não métodos dos modelos.
 
 ### Classes auxiliares da aplicação

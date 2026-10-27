@@ -1,5 +1,5 @@
 # JanuPoints
-[Diagrama Entidade-Relacionamento](/docs/diagram_er.md) | [Diagrama de Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md) | [Endpoints](/docs/endpoints.md) | [Execução](/app/execucao/exec.md)
+[Diagrama Entidade-Relacionamento](docs/diagram_er.md) | [Diagrama de Classes](docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](docs/requisitos.md) | [Fluxo de Requisições](docs/fluxo_requisicao.md) | [Endpoints](docs/endpoints.md) | [Execução](app/execucao/exec.md)
 
 ---
 
@@ -71,7 +71,7 @@ graph TD
 - **Aplicativo mobile:** Expo, React Native, Expo Router e TypeScript.
 - **Painel web:** Vite, JavaScript ES Modules, HTML, CSS e Bootstrap.
 - **Atualização da fila:** Server-Sent Events (SSE).
-- **Arquivos:** armazenamento local de mídia durante a execução atual.
+- **Arquivos no desenvolvimento local:** armazenamento de mídia em `app/backend/app/media`.
 - **Orquestração local:** Docker Compose.
 
 ---
@@ -97,7 +97,7 @@ app/backend/app/
 - `estabelecimentos`: consulta e atualização dos dados dos estabelecimentos.
 - `produtos`: criação, consulta, atualização e exclusão de recompensas.
 - `tickets`: operações de crédito e débito, aprovações, recusas, cancelamentos e atualização da fila.
-- `core`: permissões compartilhadas, filtro de contexto de logging e comando para recalcular pontos.
+- `core`: permissões compartilhadas, logging, verificação de saúde, dados de demonstração e recálculo de pontos.
 
 ---
 
@@ -128,7 +128,7 @@ app/backend/app/
 ### Perfis de acesso
 
 - **Cliente:** consulta parceiros e recompensas, gerencia os próprios dados, acumula pontos, solicita resgates e acompanha seus tickets.
-- **Administrador do estabelecimento:** acessa o estabelecimento associado, administra recompensas e analisa solicitações relacionadas à empresa.
+- **Administrador do estabelecimento:** acessa o estabelecimento associado, cria recompensas e analisa solicitações. O perfil com `super_user=True` também pode editar/excluir recompensas e atualizar/excluir o estabelecimento. Essa flag é diferente de `Usuario.is_superuser`, que concede acesso global.
 - **Superusuário:** possui acesso administrativo ampliado aos estabelecimentos, produtos e tickets.
 
 ### Interface e comunicação
@@ -150,6 +150,7 @@ app/backend/app/
 - O cancelamento ou a recusa de um resgate devolve os pontos ao cliente.
 - O administrador só acessa tickets e produtos do estabelecimento associado, salvo superusuários da plataforma.
 - O cliente só consulta e altera os próprios dados e tickets.
+- Aprovar um resgate muda o status para `APROVADO`. A conclusão é realizada pela ação `concluir` da API.
 
 ---
 
@@ -186,7 +187,7 @@ npm install
 npm run dev
 ```
 
-O painel utiliza a API configurada em `app/frontend-web/januprime/src/js/config/app.js`.
+O painel lê `VITE_API_URL`, incluindo `/api`, com fallback para `http://localhost:8000/api`. A configuração está em `januprime/src/js/config/app.js`.
 
 ### Aplicativo mobile
 
@@ -197,18 +198,23 @@ npm install
 npm run start
 ```
 
-Consulte [Execução](/app/execucao/exec.md) para os comandos completos.
+O mobile lê `EXPO_PUBLIC_API_URL` sem `/api`; na ausência dela, tenta o IP do servidor Expo na porta `8000`.
+
+Consulte [Execução](app/execucao/exec.md) para os comandos completos.
 
 ---
 
 ## 7. Documentação técnica
 
-- [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md)
-- [Endpoints da API](/docs/endpoints.md)
-- [Fluxo de Requisições](/docs/fluxo_requisicao.md)
-- [Diagrama Entidade-Relacionamento](/docs/diagram_er.md)
-- [Diagrama de Classes](/docs/diagrama_classes.md)
-- [Instruções de Execução](/app/execucao/exec.md)
+- [Requisitos Funcionais e Não Funcionais](docs/requisitos.md)
+- [Endpoints da API](docs/endpoints.md)
+- [Fluxo de Requisições](docs/fluxo_requisicao.md)
+- [Diagrama Entidade-Relacionamento](docs/diagram_er.md)
+- [Diagrama de Classes](docs/diagrama_classes.md)
+- [Instruções de Execução](app/execucao/exec.md)
+- [Acessos e dados de teste](docs/acessos_teste.md)
+- [Execução do aplicativo mobile](app/execucao/exec.md#5-aplicativo-mobile)
+- [Identidade visual](docs/identidade/janupoints-opcao-a-original.png)
 
 ## Publicação para testes do TCC
 

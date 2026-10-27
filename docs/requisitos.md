@@ -1,8 +1,10 @@
-[Visão Geral](/README.md) | [Diagrama Entidade-Relacionamento](/docs/diagram_er.md) | [Diagrama de Classes](/docs/diagrama_classes.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md) | [Endpoints](/docs/endpoints.md)
+[Visão Geral](../README.md) | [Diagrama Entidade-Relacionamento](../docs/diagram_er.md) | [Diagrama de Classes](../docs/diagrama_classes.md) | [Fluxo de Requisições](../docs/fluxo_requisicao.md) | [Endpoints](../docs/endpoints.md)
 
 ---
 
 # Requisitos do Projeto
+
+Os requisitos a seguir descrevem as funcionalidades e as características técnicas do JanuPoints.
 
 ## 1. Requisitos funcionais
 

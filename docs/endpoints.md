@@ -1,4 +1,4 @@
-[Visão Geral](/README.md) | [Diagrama Entidade-Relacionamento](/docs/diagram_er.md) | [Diagrama de Classes](/docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](/docs/requisitos.md) | [Fluxo de Requisições](/docs/fluxo_requisicao.md)
+[Visão Geral](../README.md) | [Diagrama Entidade-Relacionamento](../docs/diagram_er.md) | [Diagrama de Classes](../docs/diagrama_classes.md) | [Requisitos Funcionais e Não Funcionais](../docs/requisitos.md) | [Fluxo de Requisições](../docs/fluxo_requisicao.md)
 
 ---
 
@@ -17,6 +17,8 @@ As rotas protegidas utilizam:
 ```http
 Authorization: Bearer <access_token>
 ```
+
+As listagens atuais não têm paginação configurada e retornam arrays JSON. As rotas de detalhe respeitam os filtros por perfil aplicados nas listagens, podendo retornar `404` para objetos fora desse conjunto.
 
 As respostas comuns usam JSON. O envio de nota fiscal e o upload de imagens utilizam `multipart/form-data`.
 
@@ -69,7 +71,7 @@ O login utiliza email como identificador do usuário.
 
 ### `POST /api/auth/token/refresh/`
 
-Gera um novo access token usando o refresh token.
+Gera um novo access token usando o refresh token. A rotação está habilitada: a resposta contém `access` e um novo `refresh`, que deve substituir o anterior. O refresh usado é colocado na blacklist. No ambiente de desenvolvimento, ambos os tokens têm validade configurada de um dia.
 
 **Autorização:** pública, com refresh token válido.
 
@@ -85,7 +87,7 @@ Gera um novo access token usando o refresh token.
 
 Adiciona o refresh token à blacklist.
 
-**Autorização:** token JWT e refresh token válido.
+**Autorização:** refresh token válido; o `TokenBlacklistView` não exige access token. O logout adiciona o refresh token à blacklist.
 
 #### Corpo
 
@@ -115,7 +117,7 @@ Retorna os dados do usuário autenticado.
   "is_active": true,
   "nome": "Nome do Cliente",
   "cpf": "123.456.789-00",
-  "telefone": "5538999998888",
+  "telefone": "+5538999998888",
   "pontos": 120
 }
 ```
@@ -138,13 +140,23 @@ Retorna os dados do usuário autenticado.
 }
 ```
 
+Se o usuário não tiver o perfil correspondente, `/api/me/` retorna os dados base e um campo `warning`. Isso pode ocorrer com um superusuário criado sem perfil `Administrador`.
+
 ### `PUT /api/usuarios/change-password/`
 
 Altera a senha do usuário autenticado.
 
 **Autorização:** usuário autenticado.
 
-O corpo é validado por `ChangePasswordSerializer` e deve conter os campos de senha definidos pelo backend, incluindo a senha atual e a nova senha.
+Também aceita `PATCH`, exigindo os mesmos três campos:
+
+```json
+{
+  "old_password": "senha-atual",
+  "new_password": "nova-senha-segura",
+  "new_password2": "nova-senha-segura"
+}
+```
 
 #### Resposta
 
@@ -179,7 +191,9 @@ Cria um cliente e seu usuário de autenticação.
 
 #### Resposta `201 Created`
 
-Retorna os dados do cliente criado, com `cpf` e `pontos` como campos somente leitura.
+Retorna `usuario` (objeto com `id`, `email`, `tipo_usuario`, `is_active`, `created_at`, `updated_at`), `email`, `nome`, `cpf`, `telefone` e `pontos`. O CPF é recebido no cadastro; nas atualizações de perfil, CPF e pontos são somente leitura. Senhas não são retornadas.
+
+O `{id}` usado em `/api/clientes/{id}/` é o ID do usuário, pois a relação um-para-um é a chave primária do perfil.
 
 ### `GET /api/clientes/{id}/`
 
@@ -247,7 +261,9 @@ Retorna os detalhes de um estabelecimento.
 
 **Autorização:** usuário autenticado.
 
-#### Resposta
+#### Resposta para administrador ou superusuário
+
+Para clientes, `ativo`, `created_at` e `updated_at` são omitidos. URLs de imagem podem ser absolutas conforme o contexto da requisição. Os exemplos abaixo são ilustrativos. Com `USE_TZ=False`, não se deve presumir que as datas de resposta estejam em UTC.
 
 ```json
 {
@@ -262,8 +278,8 @@ Retorna os detalhes de um estabelecimento.
     "segunda": "08:00-18:00"
   },
   "ativo": true,
-  "created_at": "2026-01-01T12:00:00Z",
-  "updated_at": "2026-01-01T12:00:00Z"
+  "created_at": "2026-01-01T12:00:00",
+  "updated_at": "2026-01-01T12:00:00"
 }
 ```
 
@@ -271,21 +287,21 @@ Retorna os detalhes de um estabelecimento.
 
 Atualiza um estabelecimento.
 
-**Autorização:** superusuário ou administrador autorizado do estabelecimento.
+**Autorização:** superusuário da plataforma ou administrador do estabelecimento com `super_user=True`.
 
 ### `PATCH /api/estabelecimentos/{id}/`
 
 Atualiza parcialmente um estabelecimento.
 
-**Autorização:** superusuário ou administrador autorizado do estabelecimento.
+**Autorização:** superusuário da plataforma ou administrador do estabelecimento com `super_user=True`.
 
 ### `DELETE /api/estabelecimentos/{id}/`
 
 Exclui um estabelecimento.
 
-**Autorização:** superusuário ou administrador autorizado do estabelecimento.
+**Autorização:** superusuário da plataforma ou administrador do estabelecimento com `super_user=True`.
 
-O cadastro de novos estabelecimentos não é exposto por este viewset.
+O CNPJ é somente leitura. O cadastro de novos estabelecimentos não é exposto por este viewset.
 
 ---
 
@@ -303,6 +319,8 @@ Comportamento:
 - administrador: produtos do estabelecimento associado;
 - cliente: produtos ativos de estabelecimentos ativos.
 
+Para clientes, as respostas omitem `preco`, `ativo`, `created_at` e `updated_at`; o custo de resgate é `pontos`. Também há campos relacionados `estabelecimento_nome` e `estabelecimento_logo`.
+
 #### Busca por nome
 
 ```text
@@ -319,7 +337,7 @@ GET /api/produtos/?estabelecimento=1
 
 Cria uma recompensa.
 
-**Autorização:** superusuário ou administrador autorizado.
+**Autorização:** administrador autenticado com perfil de estabelecimento, mesmo com `super_user=False`. O estabelecimento é preenchido pelo backend e não deve ser enviado.
 
 #### Corpo JSON
 
@@ -356,19 +374,19 @@ Retorna uma recompensa.
 
 Atualiza uma recompensa.
 
-**Autorização:** superusuário ou administrador autorizado.
+**Autorização:** superusuário da plataforma ou administrador do estabelecimento com `super_user=True`.
 
 ### `PATCH /api/produtos/{id}/`
 
 Atualiza parcialmente uma recompensa.
 
-**Autorização:** superusuário ou administrador autorizado.
+**Autorização:** superusuário da plataforma ou administrador do estabelecimento com `super_user=True`.
 
 ### `DELETE /api/produtos/{id}/`
 
 Exclui uma recompensa.
 
-**Autorização:** superusuário ou administrador autorizado.
+**Autorização:** superusuário da plataforma ou administrador do estabelecimento com `super_user=True`.
 
 ### Cálculo de pontos
 
@@ -378,7 +396,7 @@ Ao salvar um produto, o backend calcula:
 pontos = int(preco * 100 / PORCENTAGEM_CASHBACK)
 ```
 
-O valor padrão de `PORCENTAGEM_CASHBACK` é `5.0`.
+O valor padrão de `PORCENTAGEM_CASHBACK` é `5.0`, configurável no Constance. O cálculo é feito ao salvar um produto com preço não zero; alterar a configuração não recalcula automaticamente os produtos existentes. Use `recalcular_pontos_produtos` para reaplicar a regra.
 
 ---
 
@@ -408,18 +426,20 @@ Cria um ticket de acúmulo.
 estabelecimento: ID do estabelecimento
 imagem: imagem da nota fiscal
 preco: valor da nota
-data_nota: data da nota
+data_nota: data/hora ISO 8601 (ex.: 2026-10-27T10:00:00)
 numero_nota: número da nota
 ```
 
 Validações:
 
 - `preco` deve ser maior que zero;
-- `data_nota` não pode estar no futuro;
+- o dia de `data_nota` não pode ser posterior ao dia atual;
 - a combinação de estabelecimento e número da nota não pode estar duplicada;
 - o estabelecimento precisa estar ativo.
 
-O ticket é criado com status `ABERTO` e os pontos são calculados com `PONTOS_POR_REAL_GASTO`.
+O ticket é criado com status `ABERTO`; `pontos = int(float(preco) * PONTOS_POR_REAL_GASTO)`, cujo fator padrão é `1.0`. A resposta `201` contém `id`, `cliente`, `codigo`, `status`, `estabelecimento`, `imagem`, `preco`, `data_nota` e `numero_nota`. Para obter pontos, observação, datas e campos relacionados, consulte o detalhe.
+
+O mobile envia a data como `AAAA-MM-DD`. Envie a imagem da nota junto aos demais campos. O serializer verifica a combinação de estabelecimento e número da nota para rejeitar duplicidades.
 
 ### `GET /api/tickets/credito/{id}/`
 
@@ -493,7 +513,7 @@ Validações:
 - estabelecimento ativo;
 - saldo suficiente.
 
-Na criação, os pontos do produto são debitados do cliente e o ticket é criado com status `ABERTO`.
+Na criação, os pontos do produto são debitados do cliente e o ticket é criado com status `ABERTO`. O valor em pontos é preservado no ticket mesmo que o catálogo seja alterado depois. A resposta `201` contém apenas `id` e `produto`; consulte o detalhe para obter status, código, pontos e campos relacionados.
 
 ### `GET /api/tickets/debito/{id}/`
 
@@ -552,6 +572,8 @@ Quando não há alteração, o servidor envia heartbeat:
 : heartbeat
 ```
 
+Sem token ou com token inválido, responde `401` com evento `error`. Um usuário válido sem estabelecimento recebe evento `error` e a conexão termina. O JWT é validado ao abrir a conexão. O primeiro resultado já gera `tickets_changed`, mesmo com total zero; depois os IDs são comparados a cada dois segundos.
+
 O stream considera tickets abertos de crédito e débito do estabelecimento associado ao administrador.
 
 ---
@@ -563,3 +585,19 @@ O stream considera tickets abertos de crédito e débito do estabelecimento asso
 Acessa o Django Admin quando o usuário possui credenciais administrativas.
 
 A administração é registrada pelo Django e utiliza os modelos ativos do projeto.
+
+---
+
+## 11. Saúde do serviço
+
+### `GET /healthz/`
+
+Rota pública, fora do prefixo `/api/`. Executa `SELECT 1` no banco e retorna `200` com `{"status": "ok"}` ou `503` com `{"status": "unavailable"}` se a consulta falhar.
+
+---
+
+## 12. Métodos e respostas dos tickets
+
+Os viewsets aceitam `GET`, `POST`, `HEAD` e `OPTIONS`; não oferecem `PUT`, `PATCH` ou `DELETE`. As ações de processamento retornam mensagens em `status` (e `pontos_creditados` na aprovação de crédito), não o ticket completo. Consulte o detalhe após a ação quando precisar do objeto atualizado.
+
+As operações de crédito, débito e estorno de saldo utilizam transações atômicas.
